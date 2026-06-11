@@ -1,0 +1,191 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #050608;
+  --fg: #e7ecf3;
+  --muted: #7d8597;
+  --accent: #7cf5d0;
+  --accent-2: #7c5cff;
+  --line: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+::selection {
+  background: rgba(124, 245, 208, 0.25);
+  color: #fff;
+}
+
+/* ----- Reusable visual primitives ----- */
+
+.bg-grid {
+  background-image: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: center;
+}
+
+.bg-grid-fine {
+  background-image: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-radial-fade {
+  background: radial-gradient(
+    circle at center,
+    rgba(124, 245, 208, 0.08) 0%,
+    rgba(5, 6, 8, 0) 60%
+  );
+}
+
+.bg-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+.text-gradient {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #ffffff 50%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-accent {
+  background: linear-gradient(90deg, #7cf5d0 0%, #a4ffe1 50%, #7c5cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: rgba(15, 18, 24, 0.6);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hairline {
+  border: 1px solid var(--line);
+}
+
+.glow-accent {
+  box-shadow: 0 0 0 1px rgba(124, 245, 208, 0.25),
+    0 0 40px rgba(124, 245, 208, 0.25), inset 0 0 24px rgba(124, 245, 208, 0.08);
+}
+
+.glow-violet {
+  box-shadow: 0 0 0 1px rgba(124, 92, 255, 0.25),
+    0 0 40px rgba(124, 92, 255, 0.25), inset 0 0 24px rgba(124, 92, 255, 0.08);
+}
+
+.dashed-ring {
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.kicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: #c8d1de;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+}
+
+.chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+.flow-line {
+  stroke: rgba(124, 245, 208, 0.4);
+  stroke-width: 1.25;
+  fill: none;
+}
+
+.flow-line-soft {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
+  fill: none;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
