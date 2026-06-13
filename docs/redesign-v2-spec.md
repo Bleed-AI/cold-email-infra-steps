@@ -1,7 +1,9 @@
 # Cold-Email Walkthrough — v2 Redesign Spec
 
 **Source:** Taha's detailed feedback on 2026-06-13 (with 4 annotated sketch images).
-**Status:** SPEC ONLY. Do **not** implement until the user says **"go"** (after a compaction).
+**Status:** ✅ SHIPPED 2026-06-13 — all criteria implemented, verified, and pushed to `main`.
+This doc is now a historical record of the brief + acceptance criteria. (One open item: confirm
+the ~27/inbox/day figure in Live-sending — see CLAUDE.md.)
 **Goal:** Finalize the whole deck end-to-end, fix every issue below, then push to GitHub live.
 **Hard rule:** No half-baked output. Every screen must be frame-audited (build phase) AND its
 continuous loop phase verified before it's considered done.

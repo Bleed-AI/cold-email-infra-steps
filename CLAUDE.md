@@ -46,19 +46,33 @@ on a foreground browser. Always state that distinction honestly.
 - Multiple dev servers sharing `.next` corrupt the cache → 404s. Keep ONE dev server; if thrashed,
   kill it, `rm -rf .next`, restart.
 
-## Current priority — the v2 REDESIGN
-The animations need a substantial v2 pass. **The full, authoritative brief is
-`docs/redesign-v2-spec.md` — read it before doing any animation work.** Headlines:
-1. **One-shot-then-loop:** screens must NOT abruptly stop; they build once, then loop gracefully.
-2. **On-screen labels** (text + animated numbers) on every screen, plus left-rail descriptions.
-3. **Narration descriptions open by default.**
-4. Setup: real Zapmail logo, real Gmail square mailbox icons + names + checks, green flow once
-   (loop only the purple redirect lines).
-5. List building: redo as a connected Sources→Qualify→Enrich→Decision-makers→Emails network.
-6. AI copy: real data + AI variables (study `bleedai-campaign-master/.claude/commands/copy.md`).
-7. Live sending: fix overlaps, drop the inbox grid, loop it.
-8. Monitoring: loop it; add domain monitoring; test CTAs/subjects/offer angles.
-9. End-to-end + push to GitHub live.
+## v2 REDESIGN — SHIPPED (2026-06-13)
+The substantial v2 animation pass is **done and pushed to `main`**. Full brief +
+acceptance criteria remain in `docs/redesign-v2-spec.md` (historical record). All
+nine headlines landed:
+1. **One-shot-then-loop** — real loop support in `useScrubClock` (`loop:true`): the clock
+   keeps advancing `t` past `duration`; build segments (`seg`) hold, ambient elements loop via
+   `phase()`/`sin`. Seamless verified by `renderAt(t)==renderAt(t+period)` (canvas-pixel hash).
+   `useDeckHandle` `startLoop`/`seekEnd` resume the ambient loop on re-entry (no freeze, no rebuild).
+2. **On-screen labels** — reusable `<Callout>` (`app/lab/engine/Callout.tsx`): label + animated
+   number + leader. Used on every screen.
+3. **Narration descriptions open by default** (`NarrationRail`).
+4. Setup: real **Zapmail** SVG (`public/logos/zapmail.svg`) + inline **Gmail square** mark
+   (`GmailMark` in `ProviderLogo`); 21 named mailboxes + auth checks; green fires once, only the
+   **purple redirect lines loop**.
+5. List building → connected **Sources→Qualify→Enrich→Decision-makers→Emails** network.
+6. AI copy → **DATA vars (mint) + AI vars (violet)** visibly merged (grounded in the copy skill).
+7. Live sending → grid dropped, overlaps gone, metered stream + replies loop.
+8. Monitoring → loops (SMIL heartbeat + canvas packets); **domain monitoring** added; A/B over
+   **subject lines · CTAs · offer angles**.
+9. End-to-end verified + pushed to GitHub `main`.
+
+**Perf rule baked into every screen:** stop pushing per-frame React state (`setDt`) once the build
+completes (`pushedRef` gate) — ambient motion runs on canvas-rAF + CSS/SMIL, not React re-renders.
+
+**Open item:** the Live-sending **~27 emails/inbox/day** label is unconfirmed (27×21≈567 vs the
+documented 500/day campaign cap ≈ 24/inbox). Confirm the real figure with the user and adjust
+`PER_INBOX_PER_DAY` in `app/screens/prospects.ts`.
 
 ## Conventions
 - Match surrounding code: functional components, hooks, Tailwind classes, the existing tokens.
