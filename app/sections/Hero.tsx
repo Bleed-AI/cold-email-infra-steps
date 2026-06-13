@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useClient } from "../context/ClientContext";
+import { clampedDpr, runVisibleLoop } from "../lib/canvasRuntime";
 
 export default function Hero() {
   const ref = useRef<HTMLDivElement>(null);
@@ -264,13 +265,13 @@ function Particles() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    let raf = 0;
-    let w = (canvas.width = canvas.offsetWidth * devicePixelRatio);
-    let h = (canvas.height = canvas.offsetHeight * devicePixelRatio);
+    const dpr = clampedDpr();
+    let w = (canvas.width = canvas.offsetWidth * dpr);
+    let h = (canvas.height = canvas.offsetHeight * dpr);
 
     const resize = () => {
-      w = canvas.width = canvas.offsetWidth * devicePixelRatio;
-      h = canvas.height = canvas.offsetHeight * devicePixelRatio;
+      w = canvas.width = canvas.offsetWidth * dpr;
+      h = canvas.height = canvas.offsetHeight * dpr;
     };
     window.addEventListener("resize", resize);
 
@@ -278,8 +279,8 @@ function Particles() {
     const dots = Array.from({ length: N }).map(() => ({
       x: Math.random() * w,
       y: Math.random() * h,
-      vx: (Math.random() - 0.5) * 0.25 * devicePixelRatio,
-      vy: (Math.random() - 0.5) * 0.25 * devicePixelRatio,
+      vx: (Math.random() - 0.5) * 0.25 * dpr,
+      vy: (Math.random() - 0.5) * 0.25 * dpr,
       r: Math.random() * 1.4 + 0.4,
       a: Math.random() * 0.6 + 0.2,
     }));
@@ -292,15 +293,14 @@ function Particles() {
         if (d.x < 0 || d.x > w) d.vx *= -1;
         if (d.y < 0 || d.y > h) d.vy *= -1;
         ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r * devicePixelRatio, 0, Math.PI * 2);
+        ctx.arc(d.x, d.y, d.r * dpr, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(124, 245, 208,${d.a})`;
         ctx.fill();
       }
-      raf = requestAnimationFrame(tick);
     };
-    tick();
+    const stopLoop = runVisibleLoop(canvas, tick);
     return () => {
-      cancelAnimationFrame(raf);
+      stopLoop();
       window.removeEventListener("resize", resize);
     };
   }, []);

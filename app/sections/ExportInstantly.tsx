@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { useClient } from "../context/ClientContext";
+import { clampedDpr, runVisibleLoop } from "../lib/canvasRuntime";
 
 export default function ExportInstantly() {
   const ref = useRef<HTMLDivElement>(null);
@@ -59,10 +60,10 @@ export default function ExportInstantly() {
     if (!canvas) return;
     const c = canvas.getContext("2d");
     if (!c) return;
-    let raf = 0;
+    const dpr = clampedDpr();
     const resize = () => {
-      canvas.width = canvas.offsetWidth * devicePixelRatio;
-      canvas.height = canvas.offsetHeight * devicePixelRatio;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
     };
     resize();
     window.addEventListener("resize", resize);
@@ -75,8 +76,8 @@ export default function ExportInstantly() {
       particles.push({
         x: 0,
         y: h * (0.2 + Math.random() * 0.6),
-        v: (1 + Math.random() * 2.5) * devicePixelRatio,
-        r: (Math.random() * 1.4 + 0.6) * devicePixelRatio,
+        v: (1 + Math.random() * 2.5) * dpr,
+        r: (Math.random() * 1.4 + 0.6) * dpr,
         a: Math.random() * 0.8 + 0.2,
         hue: Math.random() > 0.5 ? 160 : 260,
       });
@@ -94,11 +95,10 @@ export default function ExportInstantly() {
         c.fillStyle = `hsla(${p.hue},80%,70%,${p.a})`;
         c.fill();
       }
-      raf = requestAnimationFrame(tick);
     };
-    tick();
+    const stopLoop = runVisibleLoop(canvas, tick, { warmupFrames: 150 });
     return () => {
-      cancelAnimationFrame(raf);
+      stopLoop();
       window.removeEventListener("resize", resize);
       ctx.revert();
     };

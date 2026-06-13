@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { useClient } from "../context/ClientContext";
+import { clampedDpr, runVisibleLoop } from "../lib/canvasRuntime";
 
 export default function WarmupEngine() {
   const ref = useRef<HTMLDivElement>(null);
@@ -55,10 +56,11 @@ export default function WarmupEngine() {
     if (!canvas) return;
     const c = canvas.getContext("2d");
     if (!c) return;
+    const dpr = clampedDpr();
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth * devicePixelRatio;
-      canvas.height = canvas.offsetHeight * devicePixelRatio;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
     };
     resize();
     window.addEventListener("resize", resize);
@@ -76,7 +78,7 @@ export default function WarmupEngine() {
         nodes.push({
           x: W / 2 + Math.cos(angle) * radius * 0.62,
           y: H / 2 + Math.sin(angle) * radius * 0.62,
-          r: 4 * devicePixelRatio,
+          r: 4 * dpr,
           pulse: Math.random(),
         });
       }
@@ -103,18 +105,17 @@ export default function WarmupEngine() {
       });
     };
 
-    let raf = 0;
     const tick = () => {
       c.clearRect(0, 0, canvas.width, canvas.height);
 
       // background lines (mesh)
-      c.lineWidth = 0.6 * devicePixelRatio;
+      c.lineWidth = 0.6 * dpr;
       c.strokeStyle = "rgba(255,255,255,0.04)";
       for (let i = 0; i < N; i++) {
         for (let j = i + 1; j < N; j++) {
           const dx = nodes[i].x - nodes[j].x;
           const dy = nodes[i].y - nodes[j].y;
-          if (Math.hypot(dx, dy) < 230 * devicePixelRatio) {
+          if (Math.hypot(dx, dy) < 230 * dpr) {
             c.beginPath();
             c.moveTo(nodes[i].x, nodes[i].y);
             c.lineTo(nodes[j].x, nodes[j].y);
@@ -142,7 +143,7 @@ export default function WarmupEngine() {
 
         // trail
         c.strokeStyle = `hsla(${e.hue},80%,70%,0.18)`;
-        c.lineWidth = 1 * devicePixelRatio;
+        c.lineWidth = 1 * dpr;
         c.beginPath();
         c.moveTo(a.x, a.y);
         c.lineTo(x, y);
@@ -151,13 +152,13 @@ export default function WarmupEngine() {
         // head
         c.fillStyle = `hsla(${e.hue},90%,75%,1)`;
         c.beginPath();
-        c.arc(x, y, 2.4 * devicePixelRatio, 0, Math.PI * 2);
+        c.arc(x, y, 2.4 * dpr, 0, Math.PI * 2);
         c.fill();
 
         c.shadowBlur = 14;
         c.shadowColor = `hsla(${e.hue},90%,70%,0.8)`;
         c.beginPath();
-        c.arc(x, y, 1.6 * devicePixelRatio, 0, Math.PI * 2);
+        c.arc(x, y, 1.6 * dpr, 0, Math.PI * 2);
         c.fillStyle = "rgba(255,255,255,0.9)";
         c.fill();
         c.shadowBlur = 0;
@@ -169,9 +170,9 @@ export default function WarmupEngine() {
         // outer glow ring on pulse
         if (n.pulse > 0.02) {
           c.beginPath();
-          c.arc(n.x, n.y, n.r + n.pulse * 26 * devicePixelRatio, 0, Math.PI * 2);
+          c.arc(n.x, n.y, n.r + n.pulse * 26 * dpr, 0, Math.PI * 2);
           c.strokeStyle = `rgba(124, 245, 208,${0.6 * n.pulse})`;
-          c.lineWidth = 1.2 * devicePixelRatio;
+          c.lineWidth = 1.2 * dpr;
           c.stroke();
         }
         c.beginPath();
@@ -185,16 +186,15 @@ export default function WarmupEngine() {
         c.beginPath();
         c.arc(n.x, n.y, n.r * 1.6, 0, Math.PI * 2);
         c.strokeStyle = "rgba(124, 245, 208,0.4)";
-        c.lineWidth = 1 * devicePixelRatio;
+        c.lineWidth = 1 * dpr;
         c.stroke();
       }
 
-      raf = requestAnimationFrame(tick);
     };
-    tick();
+    const stopLoop = runVisibleLoop(canvas, tick, { warmupFrames: 120 });
 
     return () => {
-      cancelAnimationFrame(raf);
+      stopLoop();
       window.removeEventListener("resize", resize);
       window.removeEventListener("resize", resize2);
       ctx.revert();

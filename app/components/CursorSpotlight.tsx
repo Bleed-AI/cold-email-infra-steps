@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useRef } from "react";
+import { prefersReducedMotion } from "../lib/canvasRuntime";
 
 export default function CursorSpotlight() {
   const ref = useRef<HTMLDivElement>(null);
@@ -8,6 +9,11 @@ export default function CursorSpotlight() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    if (prefersReducedMotion()) {
+      el.style.display = "none";
+      return;
+    }
 
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;

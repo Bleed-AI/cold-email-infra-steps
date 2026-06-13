@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { useClient } from "../context/ClientContext";
+import { clampedDpr, runVisibleLoop } from "../lib/canvasRuntime";
 
 const LAYERS = [
   { label: "Domains", count: 7, ring: 0.32, hue: 160 },
@@ -43,14 +44,14 @@ export default function Delivery() {
     if (!canvas) return;
     const c = canvas.getContext("2d");
     if (!c) return;
+    const dpr = clampedDpr();
     const resize = () => {
-      canvas.width = canvas.offsetWidth * devicePixelRatio;
-      canvas.height = canvas.offsetHeight * devicePixelRatio;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
     };
     resize();
     window.addEventListener("resize", resize);
 
-    let raf = 0;
     let t = 0;
 
     const tick = () => {
@@ -72,7 +73,7 @@ export default function Delivery() {
 
       // center node
       c.beginPath();
-      c.arc(cx, cy, 18 * devicePixelRatio, 0, Math.PI * 2);
+      c.arc(cx, cy, 18 * dpr, 0, Math.PI * 2);
       c.fillStyle = "#7cf5d0";
       c.shadowBlur = 40;
       c.shadowColor = "#7cf5d0";
@@ -86,7 +87,7 @@ export default function Delivery() {
         c.beginPath();
         c.arc(cx, cy, radius, 0, Math.PI * 2);
         c.strokeStyle = "rgba(255,255,255,0.05)";
-        c.lineWidth = 1 * devicePixelRatio;
+        c.lineWidth = 1 * dpr;
         c.stroke();
 
         for (let i = 0; i < layer.count; i++) {
@@ -100,12 +101,12 @@ export default function Delivery() {
           c.moveTo(cx, cy);
           c.lineTo(x, y);
           c.strokeStyle = `hsla(${layer.hue},80%,70%,0.07)`;
-          c.lineWidth = 1 * devicePixelRatio;
+          c.lineWidth = 1 * dpr;
           c.stroke();
 
           // node
           c.beginPath();
-          c.arc(x, y, 4 * devicePixelRatio, 0, Math.PI * 2);
+          c.arc(x, y, 4 * dpr, 0, Math.PI * 2);
           c.fillStyle = `hsla(${layer.hue},85%,72%,1)`;
           c.shadowBlur = 18;
           c.shadowColor = `hsla(${layer.hue},90%,70%,0.9)`;
@@ -114,9 +115,9 @@ export default function Delivery() {
 
           // outer ring
           c.beginPath();
-          c.arc(x, y, 7 * devicePixelRatio, 0, Math.PI * 2);
+          c.arc(x, y, 7 * dpr, 0, Math.PI * 2);
           c.strokeStyle = `hsla(${layer.hue},80%,70%,0.35)`;
-          c.lineWidth = 1 * devicePixelRatio;
+          c.lineWidth = 1 * dpr;
           c.stroke();
         }
       }
@@ -129,17 +130,16 @@ export default function Delivery() {
         const x = cx + Math.cos(angle) * radius;
         const y = cy + Math.sin(angle) * radius;
         c.beginPath();
-        c.arc(x, y, 1.2 * devicePixelRatio, 0, Math.PI * 2);
+        c.arc(x, y, 1.2 * dpr, 0, Math.PI * 2);
         c.fillStyle = `hsla(${layer.hue},90%,80%,0.9)`;
         c.fill();
       }
 
-      raf = requestAnimationFrame(tick);
     };
-    tick();
+    const stopLoop = runVisibleLoop(canvas, tick);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stopLoop();
       window.removeEventListener("resize", resize);
       ctx.revert();
     };

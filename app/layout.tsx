@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import SmoothScroll from "./components/SmoothScroll";
 import { ClientProvider } from "./context/ClientContext";
 
 const sans = Inter({
@@ -29,10 +28,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} bg-ink-950`}>
-      <body className="bg-ink-950 text-white overflow-x-hidden antialiased">
-        <ClientProvider>
-          <SmoothScroll>{children}</SmoothScroll>
-        </ClientProvider>
+      <body className="bg-ink-950 text-white overflow-hidden antialiased">
+        <ClientProvider>{children}</ClientProvider>
       </body>
     </html>
   );

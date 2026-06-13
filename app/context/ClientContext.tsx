@@ -12,11 +12,20 @@ type ClientInfo = {
   businessName: string;
   slug: string;
   mainDomain: string;
+  firstName: string;
+  lastName: string;
+};
+
+export type SetClientInput = {
+  businessName: string;
+  mainDomain?: string;
+  firstName?: string;
+  lastName?: string;
 };
 
 type ClientContextValue = {
   client: ClientInfo | null;
-  setClient: (businessName: string, mainDomain?: string) => void;
+  setClient: (input: SetClientInput) => void;
   reset: () => void;
 };
 
@@ -34,12 +43,18 @@ function toSlug(name: string): string {
 export function ClientProvider({ children }: { children: React.ReactNode }) {
   const [client, setClientState] = useState<ClientInfo | null>(null);
 
-  const setClient = useCallback((businessName: string, mainDomain?: string) => {
-    const trimmed = businessName.trim();
+  const setClient = useCallback((input: SetClientInput) => {
+    const trimmed = input.businessName.trim();
     if (!trimmed) return;
     const slug = toSlug(trimmed);
-    const domain = (mainDomain?.trim() || `${slug}.com`).toLowerCase();
-    const info: ClientInfo = { businessName: trimmed, slug, mainDomain: domain };
+    const domain = (input.mainDomain?.trim() || `${slug}.com`).toLowerCase();
+    const info: ClientInfo = {
+      businessName: trimmed,
+      slug,
+      mainDomain: domain,
+      firstName: input.firstName?.trim() ?? "",
+      lastName: input.lastName?.trim() ?? "",
+    };
     setClientState(info);
   }, []);
 
