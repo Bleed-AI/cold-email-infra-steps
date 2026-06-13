@@ -26,6 +26,6 @@ export const SLIDES: SlideDef[] = [
   { id: "warmup", label: "Warm-up", kind: "one-shot-then-loop", Component: makeScreenSlide(WarmupScreen) },
   { id: "list", label: "Building the list", kind: "one-shot-then-loop", Component: makeScreenSlide(ListBuildingScreen) },
   { id: "copy", label: "AI copy", kind: "one-shot-then-loop", Component: makeScreenSlide(CopyScreen) },
-  { id: "sending", label: "Live sending", kind: "one-shot", Component: makeScreenSlide(SendingScreen) },
+  { id: "sending", label: "Live sending", kind: "one-shot-then-loop", Component: makeScreenSlide(SendingScreen) },
   { id: "monitoring", label: "Monitoring", kind: "one-shot", Component: makeScreenSlide(MonitoringScreen) },
 ];
