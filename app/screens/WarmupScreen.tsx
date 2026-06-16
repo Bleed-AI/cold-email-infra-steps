@@ -358,6 +358,9 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
         </div>
       </div>
 
+      {/* daily send-volume ramp — warm-up raises volume gradually, never a spike */}
+      <VolumeRamp day={day} appear={clamp01((dt - (T.daysStart + 0.3)) / 0.9)} />
+
       {L && (
         <>
           {/* 21 mailbox nodes — real Gmail / Outlook square marks */}
@@ -434,6 +437,39 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
           Replay
         </button>
       )}
+    </div>
+  );
+}
+
+/** Daily send-volume ramp: warm-up raises volume gradually (never a spike), one
+    bar per day, lighting up as the 14-day counter climbs toward live cadence. */
+function VolumeRamp({ day, appear }: { day: number; appear: number }) {
+  const a = clamp01(appear);
+  if (a <= 0) return null;
+  const DAYS = 14;
+  const vol = Math.round(lerp(3, 22, Math.min(day, DAYS) / DAYS)); // per inbox/day
+  return (
+    <div className="absolute z-30" style={{ left: "3.5%", top: "82%", transform: "translateY(-50%)", opacity: a }}>
+      <div className="rounded-xl glass px-3.5 py-3 w-[230px]">
+        <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-accent/80 mb-2">Send volume · ramps daily</div>
+        <div className="flex items-end gap-[3px] h-[34px]">
+          {Array.from({ length: DAYS }).map((_, i) => {
+            const target = lerp(0.28, 1, i / (DAYS - 1));
+            const lit = day >= i + 1;
+            return (
+              <span
+                key={i}
+                className="flex-1 rounded-[2px] transition-colors duration-300"
+                style={{ height: `${target * 100}%`, background: lit ? "linear-gradient(180deg,#ff8a7d,#ff5a4d)" : "rgba(255,255,255,0.08)" }}
+              />
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between mt-1.5 text-[9.5px] font-mono">
+          <span className="text-white/40">~3 → ~22 / inbox · day</span>
+          <span className="text-accent tabular-nums">{vol}/day</span>
+        </div>
+      </div>
     </div>
   );
 }
