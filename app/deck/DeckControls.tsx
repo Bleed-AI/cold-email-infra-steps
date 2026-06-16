@@ -21,11 +21,11 @@ export default function DeckControls() {
   const deck = useDeck();
   const { unlocked, activeIndex, slides, next, prev } = deck;
 
-  const atStart = activeIndex <= 1;
+  const atStart = activeIndex <= 0;
   const atEnd = activeIndex >= slides.length - 1;
-  // Step numbering excludes the Entry screen (index 0).
-  const stepCount = slides.filter((s) => !s.navHidden).length;
-  const currentStep = Math.max(1, activeIndex);
+  // Every slide is a step now (no Entry gate); steps are 1-based for display.
+  const stepCount = slides.length;
+  const currentStep = activeIndex + 1;
 
   return (
     <AnimatePresence>

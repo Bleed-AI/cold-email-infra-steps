@@ -21,8 +21,6 @@ export interface DeckApi {
   go: (index: number) => void;
   next: () => void;
   prev: () => void;
-  /** Capture client + reveal the deck chrome + advance to the first real step. */
-  start: () => void;
   setPhaseEntered: () => void;
   setPlaying: (id: string) => void;
   markCompleted: (id: string) => void;
@@ -46,7 +44,6 @@ type Action =
   | { type: "GO"; index: number }
   | { type: "NEXT" }
   | { type: "PREV" }
-  | { type: "START" }
   | { type: "PHASE_ENTERED" }
   | { type: "SET_LIFECYCLE"; id: string; status: Lifecycle };
 
@@ -54,7 +51,6 @@ const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n
 
 function moveTo(state: State, rawIndex: number): State {
   const lastIndex = SLIDES.length - 1;
-  // Entry (index 0) stays reachable so you can jump back and edit details.
   const index = clamp(rawIndex, 0, lastIndex);
   if (index === state.activeIndex) return state;
   const visited = new Set(state.visited);
@@ -76,22 +72,6 @@ function reducer(state: State, action: Action): State {
       return moveTo(state, state.activeIndex + 1);
     case "PREV":
       return moveTo(state, state.activeIndex - 1);
-    case "START": {
-      const target = Math.min(1, SLIDES.length - 1);
-      const visited = new Set(state.visited);
-      visited.add(SLIDES[target].id);
-      return {
-        ...state,
-        unlocked: true,
-        activeIndex: target,
-        direction: 1,
-        phase: "transitioning",
-        visited,
-        // (Re)starting from Entry replays every step fresh with the new
-        // details; keep Entry itself "completed" so its form shows instantly.
-        lifecycle: { [SLIDES[0].id]: "completed" },
-      };
-    }
     case "PHASE_ENTERED":
       return state.phase === "entered" ? state : { ...state, phase: "entered" };
     case "SET_LIFECYCLE":
@@ -109,11 +89,13 @@ function initState(): State {
   return {
     activeIndex: 0,
     direction: 1,
-    // Slide 0 starts "entered" so its hero animation auto-plays on load.
+    // Slide 0 (Setup) starts "entered" so it auto-plays on load — the deck
+    // opens straight on the infrastructure, no input gate.
     phase: "entered",
     lifecycle: {},
     visited: new Set([SLIDES[0].id]),
-    unlocked: false,
+    // No gate any more — the timeline + controls are visible immediately.
+    unlocked: true,
   };
 }
 
@@ -123,7 +105,6 @@ export function DeckProvider({ children }: { children: React.ReactNode }) {
   const go = useCallback((index: number) => dispatch({ type: "GO", index }), []);
   const next = useCallback(() => dispatch({ type: "NEXT" }), []);
   const prev = useCallback(() => dispatch({ type: "PREV" }), []);
-  const start = useCallback(() => dispatch({ type: "START" }), []);
   const setPhaseEntered = useCallback(
     () => dispatch({ type: "PHASE_ENTERED" }),
     []
@@ -153,13 +134,12 @@ export function DeckProvider({ children }: { children: React.ReactNode }) {
       go,
       next,
       prev,
-      start,
       setPhaseEntered,
       setPlaying,
       markCompleted,
       replay,
     }),
-    [state, go, next, prev, start, setPhaseEntered, setPlaying, markCompleted, replay]
+    [state, go, next, prev, setPhaseEntered, setPlaying, markCompleted, replay]
   );
 
   return <DeckContext.Provider value={value}>{children}</DeckContext.Provider>;

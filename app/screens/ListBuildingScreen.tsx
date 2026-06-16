@@ -17,12 +17,23 @@ import { NarrationRail, type NarrationStep } from "../lab/engine/NarrationRail";
 import { Callout } from "../lab/engine/Callout";
 import { ProviderLogo, type Provider } from "../lab/engine/ProviderLogo";
 
-// ── data (a representative slice of a real run) ──
-const SOURCES = [
+// ── the real pipeline (grounded in bleedai-campaign-master/knowledge-base) ──
+// SOURCES: a vast fan-out — data providers + SERP + an Apify scraper cluster +
+// communities + niche directories. (logo:null → rendered as a named chip.)
+type Tool = { logo: string | null; label: string; note?: string; verify?: boolean };
+const SOURCES: Tool[] = [
+  { logo: "prospeo", label: "Prospeo" },
   { logo: "apollo", label: "Apollo" },
-  { logo: "apify", label: "Apify" },
-  { logo: "linkedin", label: "LinkedIn" },
+  { logo: "linkedin", label: "Sales Nav" },
+  { logo: "serper", label: "Serper" },
   { logo: "googlemaps", label: "Google Maps" },
+  { logo: "apify", label: "Apify actors" },
+  { logo: "openwebninja", label: "OpenWebNinja" },
+  { logo: null, label: "Crunchbase" },
+  { logo: null, label: "Product Hunt" },
+  { logo: null, label: "Store Leads" },
+  { logo: null, label: "Reddit" },
+  { logo: null, label: "GitHub" },
 ];
 const COMPANIES = [
   { name: "Brightwave Labs", keep: true },
@@ -30,44 +41,59 @@ const COMPANIES = [
   { name: "Coastal Analytics", keep: false },
   { name: "Vertex Robotics", keep: true },
 ];
-type Person = {
-  co: number;
-  initials: string;
-  name: string;
-  title: string;
-  email: string;
-  provider: Provider;
-};
-const PEOPLE: Person[] = [
-  { co: 0, initials: "EF", name: "Emma Farrell", title: "Head of Growth", email: "emma@brightwavelabs.com", provider: "gmail" },
-  { co: 0, initials: "DM", name: "Derek McNamara", title: "VP Sales", email: "derek.m@brightwavelabs.com", provider: "outlook" },
-  { co: 1, initials: "PR", name: "Priya Rao", title: "Founder", email: "priya@northpeak.io", provider: "gmail" },
-  { co: 1, initials: "SO", name: "Sam Okafor", title: "Head of Ops", email: "sam.okafor@northpeak.io", provider: "gmail" },
-  { co: 3, initials: "LC", name: "Liam Chen", title: "CEO", email: "liam@vertexrobotics.com", provider: "outlook" },
-  { co: 3, initials: "NP", name: "Nina Patel", title: "VP Eng", email: "nina.p@vertexrobotics.com", provider: "gmail" },
-];
-const ENRICH_TOOLS = [
+// Enrichment stack — Clay routes providers; Prospeo FIRMO returns 35 fields in
+// one call; smart-scrape (Serper→parallel.ai) reads the site; OpenAI writes vars.
+const ENRICH_TOOLS: Tool[] = [
   { logo: "clay", label: "Clay" },
-  { logo: "parallel", label: "parallel.ai" },
+  { logo: "prospeo", label: "FIRMO" },
   { logo: "serper", label: "Serper" },
+  { logo: "parallel", label: "parallel.ai" },
+  { logo: "openwebninja", label: "OpenWebNinja" },
+  { logo: "openai", label: "OpenAI" },
+];
+// Decision-maker finder — Prospeo first; on a miss, a sequential backup chain
+// (Surfe → MixRank → OpenMart), first hit wins.
+const DM_WATERFALL: Tool[] = [
+  { logo: "prospeo", label: "Prospeo", note: "primary" },
+  { logo: null, label: "Surfe" },
+  { logo: null, label: "MixRank" },
+  { logo: null, label: "OpenMart" },
+];
+// Email-finder waterfall — four finders in order, then a strict verify pass.
+const EMAIL_WATERFALL: Tool[] = [
+  { logo: "trykit", label: "Kitt" },
+  { logo: "leadmagic", label: "LeadMagic" },
+  { logo: "prospeo", label: "Prospeo" },
+  { logo: "findymail", label: "Findymail" },
+  { logo: "trykit", label: "TryKit verify", verify: true },
+];
+
+type Person = { initials: string; name: string; title: string; email: string; provider: Provider };
+const CONTACTS: Person[] = [
+  { initials: "EF", name: "Emma Farrell", title: "Head of Growth", email: "emma@brightwavelabs.com", provider: "gmail" },
+  { initials: "PR", name: "Priya Rao", title: "Founder", email: "priya@northpeak.io", provider: "gmail" },
+  { initials: "LC", name: "Liam Chen", title: "CEO", email: "liam@vertexrobotics.com", provider: "outlook" },
+  { initials: "DM", name: "Derek McNamara", title: "VP Sales", email: "derek.m@brightwavelabs.com", provider: "outlook" },
+  { initials: "NP", name: "Nina Patel", title: "VP Eng", email: "nina.p@vertexrobotics.com", provider: "gmail" },
 ];
 const COUNTS = { sourced: 1240, qualified: 680, dms: 1700, emails: 1510 };
 
 // ── beat timeline (seconds) ──
 const T = {
   srcStart: 0.3,
-  srcStagger: 0.22,
-  coStart: 2.3,
-  coStagger: 0.22,
-  qualifyAt: 3.7, // when keep/drop is decided
-  enrichStart: 4.8,
-  enrichDur: 1.8,
-  peopleStart: 7.0,
-  peopleStagger: 0.24,
-  emailStart: 9.4,
-  emailStagger: 0.24,
+  srcStagger: 0.12,
+  coStart: 2.4,
+  coStagger: 0.2,
+  qualifyAt: 3.9,
+  enrichStart: 4.7,
+  dmStart: 5.8,
+  dmStagger: 0.2,
+  emailStart: 7.9,
+  emailStagger: 0.18,
+  contactStart: 9.8,
+  contactStagger: 0.22,
 };
-const DURATION = 13.0;
+const DURATION = 14.0;
 const FLOW_PERIOD = 3.6; // ambient particle period (shared → seamless)
 
 type Pt = { x: number; y: number };
@@ -78,11 +104,10 @@ type Layout = {
   funnel: Pt;
   companies: Pt[];
   enrich: Pt;
-  people: Pt[];
-  emails: Pt[];
+  dmHub: Pt;
+  emailHub: Pt;
+  contacts: Pt[];
 };
-
-const keptIndex = (co: number) => COMPANIES.slice(0, co).filter((c) => c.keep).length;
 
 export default function ListBuildingScreen({ businessName, deckHandleRef, onDone }: ScreenProps) {
   const reduce = !!useReducedMotion();
@@ -96,11 +121,11 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Source from everywhere", detail: <p>We pull candidate companies from Apollo, Apify, LinkedIn, Google Maps and niche directories — far wider coverage than any single tool.</p> },
-      { n: "02", title: "Qualify the companies", detail: <p>We keep only right-fit companies for {businessName} — correct size, industry and signals — and drop the rest before spending a cent enriching them.</p> },
-      { n: "03", title: "Enrich every one", detail: <p>We scrape each company&apos;s website and socials (via Clay, parallel.ai and Serper) for the signals that make an email feel one-to-one.</p> },
-      { n: "04", title: "Find the decision-makers", detail: <p>2–3 real decision-makers per company — the people who can actually say yes — with their title and role.</p> },
-      { n: "05", title: "Find their emails", detail: <p>A verified waterfall — Prospeo first, then three backup methods — finds and validates each email, so bounce rates stay near zero.</p> },
+      { n: "01", title: "Source from a vast network", detail: <p>Candidate companies pour in from 12+ channels at once — Prospeo, Apollo, Sales Navigator, an Apify scraper cluster (Maps, jobs, Shopify, Product Hunt…), Serper, communities and niche directories. Far wider than any one tool.</p> },
+      { n: "02", title: "Qualify before we spend", detail: <p>We keep only right-fit companies for {businessName} — size, industry and buying signals — and drop the rest before paying to enrich a single one.</p> },
+      { n: "03", title: "Enrich every keeper", detail: <p>Clay routes 100+ providers, Prospeo FIRMO returns 35 firmographic fields in one call, and a smart-scrape cascade (Serper → parallel.ai) reads each site. OpenAI turns it into per-lead variables.</p> },
+      { n: "04", title: "Decision-makers, multiple methods", detail: <p>2–3 real buyers per company. Prospeo finds most in-house; on a miss a backup chain fires — <span className="text-white/80">Surfe → MixRank → OpenMart</span> — first hit wins.</p> },
+      { n: "05", title: "Emails through a verified waterfall", detail: <p>Each email runs a finder waterfall — <span className="text-white/80">Kitt → LeadMagic → Prospeo → Findymail</span> — then a strict <span className="text-white/80">TryKit</span> verify before it&apos;s allowed in. Bounce rates stay near zero.</p> },
     ],
     [businessName]
   );
@@ -110,31 +135,26 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
     if (!root) return;
     const w = root.clientWidth;
     const h = root.clientHeight;
-    const sources: Pt[] = SOURCES.map((_, i) => ({ x: w * 0.355, y: lerp(h * 0.32, h * 0.7, i / (SOURCES.length - 1)) }));
-    const funnel: Pt = { x: w * 0.435, y: h * 0.51 };
-    const companies: Pt[] = COMPANIES.map((_, i) => ({ x: w * 0.5, y: lerp(h * 0.27, h * 0.8, i / (COMPANIES.length - 1)) }));
-    const enrich: Pt = { x: w * 0.6, y: h * 0.51 };
-    // 2 people per kept company, fanned around the company's y
-    const people: Pt[] = PEOPLE.map((p) => {
-      const co = companies[p.co];
-      const within = PEOPLE.filter((q) => q.co === p.co).indexOf(p); // 0 or 1
-      return { x: w * 0.7, y: co.y + (within === 0 ? -h * 0.058 : h * 0.058) };
-    });
-    const emails: Pt[] = people.map((pt) => ({ x: w * 0.835, y: pt.y }));
-    layoutRef.current = { w, h, sources, funnel, companies, enrich, people, emails };
+    const sources: Pt[] = SOURCES.map((_, i) => ({ x: w * 0.405, y: lerp(h * 0.13, h * 0.91, i / (SOURCES.length - 1)) }));
+    const funnel: Pt = { x: w * 0.472, y: h * 0.52 };
+    const companies: Pt[] = COMPANIES.map((_, i) => ({ x: w * 0.55, y: lerp(h * 0.31, h * 0.73, i / (COMPANIES.length - 1)) }));
+    const enrich: Pt = { x: w * 0.55, y: h * 0.135 };
+    const dmHub: Pt = { x: w * 0.648, y: h * 0.52 };
+    const emailHub: Pt = { x: w * 0.748, y: h * 0.52 };
+    const contacts: Pt[] = CONTACTS.map((_, i) => ({ x: w * 0.85, y: lerp(h * 0.2, h * 0.84, i / (CONTACTS.length - 1)) }));
+    layoutRef.current = { w, h, sources, funnel, companies, enrich, dmHub, emailHub, contacts };
   }, []);
 
-  // ── canvas: funnel + lanes, connectors draw once, packets loop forever ──
+  // ── canvas: funnel + lanes; connectors draw once, packets loop forever ──
   const drawCanvas = useCallback((t: number) => {
     const ctx = ctxRef.current;
     const L = layoutRef.current;
     if (!ctx || !L) return;
-    const { w, h, sources, funnel, companies, enrich, people, emails } = L;
+    const { w, h, sources, funnel, companies, dmHub, emailHub, contacts } = L;
     ctx.clearRect(0, 0, w, h);
 
     const flow = (a: Pt, c1: Pt, c2: Pt, b: Pt, grow: number, color: string, pkColor: string, offset: number, n = 3, connected = false) => {
       if (grow <= 0) return;
-      // partial connector (draws in during build, holds after)
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
       const segs = 36;
@@ -144,9 +164,8 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
         ctx.lineTo(bz(a.x, c1.x, c2.x, b.x, f), bz(a.y, c1.y, c2.y, b.y, f));
       }
       ctx.strokeStyle = color;
-      ctx.lineWidth = 1.3;
+      ctx.lineWidth = 1.2;
       ctx.stroke();
-      // packets flow once the connector is built (ambient loop, seamless)
       if (connected) {
         for (let p = 0; p < n; p++) {
           const f = phase(t, FLOW_PERIOD, offset + p / n);
@@ -154,63 +173,71 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
           const x = bz(a.x, c1.x, c2.x, b.x, f);
           const y = bz(a.y, c1.y, c2.y, b.y, f);
           ctx.beginPath();
-          ctx.arc(x, y, 1.9, 0, Math.PI * 2);
+          ctx.arc(x, y, 1.8, 0, Math.PI * 2);
           ctx.fillStyle = pkColor.replace("ALPHA", (0.9 * fade).toFixed(3));
           ctx.fill();
         }
       }
     };
 
-    // sources → funnel
+    // sources → funnel (12 converging lines = a vast intake)
     sources.forEach((s, i) => {
-      const grow = easeOut(seg(t, T.srcStart + i * T.srcStagger + 0.3, T.srcStart + i * T.srcStagger + 1.0));
-      const c1 = { x: lerp(s.x, funnel.x, 0.5), y: s.y };
-      const c2 = { x: lerp(s.x, funnel.x, 0.5), y: funnel.y };
-      flow(s, c1, c2, funnel, grow, "rgba(124,245,208,0.22)", "rgba(164,255,225,ALPHA)", i * 0.17, 2, grow >= 1);
+      const grow = easeOut(seg(t, T.srcStart + i * T.srcStagger + 0.25, T.srcStart + i * T.srcStagger + 0.95));
+      const c1 = { x: lerp(s.x, funnel.x, 0.55), y: s.y };
+      const c2 = { x: lerp(s.x, funnel.x, 0.45), y: funnel.y };
+      flow(s, c1, c2, funnel, grow, "rgba(255,90,77,0.2)", "rgba(255,150,135,ALPHA)", i * 0.09, 1, grow >= 1);
     });
 
-    // funnel → companies
+    // funnel → companies (qualify keep/drop)
     companies.forEach((c, i) => {
       const grow = easeOut(seg(t, T.coStart + i * T.coStagger, T.coStart + i * T.coStagger + 0.7));
       const dropped = !COMPANIES[i].keep && t > T.qualifyAt + 0.4;
       const c1 = { x: lerp(funnel.x, c.x, 0.5), y: funnel.y };
       const c2 = { x: lerp(funnel.x, c.x, 0.5), y: c.y };
-      const col = dropped ? "rgba(255,255,255,0.06)" : "rgba(124,245,208,0.22)";
-      flow(funnel, c1, c2, c, grow, col, "rgba(164,255,225,ALPHA)", 0.4 + i * 0.13, 2, grow >= 1 && !dropped);
+      const col = dropped ? "rgba(255,255,255,0.05)" : "rgba(255,90,77,0.22)";
+      flow(funnel, c1, c2, c, grow, col, "rgba(255,150,135,ALPHA)", 0.4 + i * 0.13, 2, grow >= 1 && !dropped);
     });
 
-    // company → (enrich) → people, then person → email
-    people.forEach((pt, i) => {
-      const p = PEOPLE[i];
-      const co = companies[p.co];
-      const a0 = T.peopleStart + i * T.peopleStagger;
+    // kept companies → DM finder hub
+    companies.forEach((c, i) => {
+      if (!COMPANIES[i].keep) return;
+      const a0 = T.dmStart + i * 0.12;
       const grow = easeOut(seg(t, a0, a0 + 0.7));
-      // route the lane through the enrich hub (x≈enrich.x) so flow "passes through" it
-      const midx = enrich.x;
-      const c1 = { x: midx, y: co.y };
-      const c2 = { x: midx, y: pt.y };
-      flow(co, c1, c2, pt, grow, "rgba(124,245,208,0.2)", "rgba(164,255,225,ALPHA)", i * 0.12, 2, grow >= 1);
-
-      // person → email
-      const e = emails[i];
-      const a1 = T.emailStart + i * T.emailStagger;
-      const eg = easeOut(seg(t, a1, a1 + 0.6));
-      const ec1 = { x: lerp(pt.x, e.x, 0.5), y: pt.y };
-      const ec2 = { x: lerp(pt.x, e.x, 0.5), y: e.y };
-      flow(pt, ec1, ec2, e, eg, "rgba(124,92,255,0.3)", "rgba(167,143,255,ALPHA)", 0.5 + i * 0.1, 2, eg >= 1);
+      const c1 = { x: lerp(c.x, dmHub.x, 0.5), y: c.y };
+      const c2 = { x: lerp(c.x, dmHub.x, 0.5), y: dmHub.y };
+      flow(c, c1, c2, dmHub, grow, "rgba(255,90,77,0.2)", "rgba(255,150,135,ALPHA)", 0.2 + i * 0.15, 2, grow >= 1);
     });
 
-    // enrich hub soft glow (gentle seamless breathe, period == FLOW_PERIOD)
-    const ev = easeOut(seg(t, T.enrichStart, T.enrichStart + 0.8));
-    if (ev > 0) {
-      const breathe = 1 + 0.08 * Math.sin((t / FLOW_PERIOD) * Math.PI * 2);
-      const r = 60 * breathe;
-      const g = ctx.createRadialGradient(enrich.x, enrich.y, 0, enrich.x, enrich.y, r);
-      g.addColorStop(0, `rgba(124,245,208,${0.1 * ev})`);
-      g.addColorStop(1, "rgba(124,245,208,0)");
-      ctx.fillStyle = g;
-      ctx.fillRect(enrich.x - r, enrich.y - r, r * 2, r * 2);
+    // DM hub → email hub (the contact passes from "who" to "their email")
+    {
+      const grow = easeOut(seg(t, T.emailStart, T.emailStart + 0.7));
+      const c1 = { x: lerp(dmHub.x, emailHub.x, 0.5), y: dmHub.y - 18 };
+      const c2 = { x: lerp(dmHub.x, emailHub.x, 0.5), y: emailHub.y - 18 };
+      flow(dmHub, c1, c2, emailHub, grow, "rgba(124,92,255,0.28)", "rgba(167,143,255,ALPHA)", 0.0, 2, grow >= 1);
     }
+
+    // email hub → verified contacts (fan out)
+    contacts.forEach((pt, i) => {
+      const a0 = T.contactStart + i * T.contactStagger;
+      const grow = easeOut(seg(t, a0, a0 + 0.6));
+      const c1 = { x: lerp(emailHub.x, pt.x, 0.5), y: emailHub.y };
+      const c2 = { x: lerp(emailHub.x, pt.x, 0.5), y: pt.y };
+      flow(emailHub, c1, c2, pt, grow, "rgba(124,92,255,0.26)", "rgba(167,143,255,ALPHA)", 0.5 + i * 0.1, 2, grow >= 1);
+    });
+
+    // hub glows (seamless breathe, period == FLOW_PERIOD)
+    const breathe = 1 + 0.08 * Math.sin((t / FLOW_PERIOD) * Math.PI * 2);
+    const hubGlow = (p: Pt, ev: number, rgb: string) => {
+      if (ev <= 0) return;
+      const r = 52 * breathe;
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      g.addColorStop(0, `rgba(${rgb},${0.1 * ev})`);
+      g.addColorStop(1, `rgba(${rgb},0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
+    };
+    hubGlow(dmHub, easeOut(seg(t, T.dmStart, T.dmStart + 0.8)), "255,90,77");
+    hubGlow(emailHub, easeOut(seg(t, T.emailStart, T.emailStart + 0.8)), "124,92,255");
   }, []);
 
   const onFrame = useCallback(
@@ -256,12 +283,12 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
   useDeckHandle(controls, deckHandleRef);
 
   // ── derived overlay state ──
-  const activeNarration = dt < T.coStart ? 1 : dt < T.enrichStart ? 2 : dt < T.peopleStart ? 3 : dt < T.emailStart ? 4 : 5;
+  const activeNarration = dt < T.coStart ? 1 : dt < T.enrichStart ? 2 : dt < T.dmStart ? 3 : dt < T.emailStart ? 4 : 5;
   const cnt = (target: number, start: number, dur = 2.4) => Math.round(target * easeOut(clamp01((dt - start) / dur)));
   const sourced = cnt(COUNTS.sourced, T.srcStart + 0.2);
   const qualified = cnt(COUNTS.qualified, T.coStart);
-  const dmsCount = cnt(COUNTS.dms, T.peopleStart);
-  const emailsCount = cnt(COUNTS.emails, T.emailStart);
+  const dmsCount = cnt(COUNTS.dms, T.dmStart);
+  const emailsCount = cnt(COUNTS.emails, T.contactStart);
 
   const L = layoutRef.current;
   const px = (v: number, total: number) => `${(v / total) * 100}%`;
@@ -269,7 +296,7 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
   return (
     <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-ink-950">
       <div className="absolute inset-0 bg-grid-fine opacity-[0.16]" />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(70% 70% at 62% 50%, rgba(124,245,208,0.06), transparent 60%)" }} />
+      <div className="absolute inset-0" style={{ background: "radial-gradient(70% 70% at 60% 50%, rgba(255,90,77,0.06), transparent 60%)" }} />
       <div className="noise" />
       <canvas ref={canvasRef} className="absolute inset-0" />
 
@@ -284,27 +311,49 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
       {L && (
         <>
           {/* stage header labels with animated counts */}
-          <Callout x={px(L.sources[0].x, L.w)} y={px(L.h * 0.16, L.h)} anchor="center" tone="accent" label="Sources" value={sourced.toLocaleString()} appear={seg(dt, T.srcStart, T.srcStart + 0.8)} reduced={reduce} />
-          <Callout x={px(L.companies[0].x, L.w)} y={px(L.h * 0.16, L.h)} anchor="center" tone="accent" label="Qualified" value={qualified.toLocaleString()} appear={seg(dt, T.coStart, T.coStart + 0.8)} reduced={reduce} />
-          <Callout x={px(L.people[0].x, L.w)} y={px(L.h * 0.16, L.h)} anchor="center" tone="accent" label="Decision-makers" value={dmsCount.toLocaleString()} appear={seg(dt, T.peopleStart, T.peopleStart + 0.8)} reduced={reduce} />
-          <Callout x={px(L.emails[0].x, L.w)} y={px(L.h * 0.16, L.h)} anchor="center" tone="violet" label="Verified emails" value={emailsCount.toLocaleString()} appear={seg(dt, T.emailStart, T.emailStart + 0.8)} reduced={reduce} />
+          <Callout x={px(L.companies[0].x, L.w)} y={px(L.h * 0.235, L.h)} anchor="center" tone="accent" label="Qualified" value={qualified.toLocaleString()} appear={seg(dt, T.coStart, T.coStart + 0.8)} reduced={reduce} />
+          <Callout x={px(L.dmHub.x + L.w * 0.006, L.w)} y={px(L.h * 0.075, L.h)} anchor="center" tone="accent" label="Decision-makers" value={dmsCount.toLocaleString()} appear={seg(dt, T.dmStart, T.dmStart + 0.8)} reduced={reduce} />
+          <Callout x={px(L.contacts[0].x, L.w)} y={px(L.h * 0.085, L.h)} anchor="center" tone="violet" label="Verified emails" value={emailsCount.toLocaleString()} appear={seg(dt, T.contactStart, T.contactStart + 0.8)} reduced={reduce} />
 
-          {/* SOURCES */}
+          {/* SOURCES cloud (the vast network) */}
           {SOURCES.map((s, i) => {
-            const a = clamp01((dt - (T.srcStart + i * T.srcStagger)) / 0.45);
+            const a = clamp01((dt - (T.srcStart + i * T.srcStagger)) / 0.4);
             if (a <= 0) return null;
             return (
               <NodeAt key={s.label} x={px(L.sources[i].x, L.w)} y={px(L.sources[i].y, L.h)} appear={a} reduced={reduce}>
-                <div className="inline-flex items-center gap-2 rounded-lg bg-ink-900/80 border border-white/10 pl-1.5 pr-2.5 py-1.5 backdrop-blur-sm">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-white shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/logos/${s.logo}.png`} alt="" width={15} height={15} style={{ width: 15, height: 15 }} className="object-contain" />
-                  </span>
-                  <span className="text-[11.5px] text-white/90 whitespace-nowrap">{s.label}</span>
-                </div>
+                <ToolChip tool={s} compact />
               </NodeAt>
             );
           })}
+          {/* sourced count + "the cloud is even bigger" hint, in the clear
+              bottom gutter (the top is occupied by the nav) */}
+          <div
+            className="absolute z-20 flex items-center gap-2 whitespace-nowrap"
+            style={{ left: px(L.sources[0].x, L.w), top: px(L.h * 0.97, L.h), transform: "translate(-50%,-50%)", opacity: clamp01((dt - (T.srcStart + 4 * T.srcStagger)) / 0.6) }}
+          >
+            <span className="font-display text-[16px] text-accent leading-none tabular-nums">{sourced.toLocaleString()}</span>
+            <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-white/40">sourced · + 28 more channels</span>
+          </div>
+
+          {/* ENRICH stack — a toolbar above the qualify column */}
+          {(() => {
+            const a = clamp01((dt - T.enrichStart) / 0.6);
+            if (a <= 0) return null;
+            return (
+              <div className="absolute z-20" style={{ left: px(L.enrich.x, L.w), top: px(L.enrich.y, L.h), transform: "translate(-50%,-50%)", opacity: a }}>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-accent/80">Enrich stack</span>
+                  <div className="flex items-center gap-1 rounded-full bg-ink-900/85 border border-white/12 px-1.5 py-1 backdrop-blur-sm">
+                    {ENRICH_TOOLS.map((e, j) => (
+                      <span key={e.label} title={e.label} style={{ opacity: clamp01((dt - (T.enrichStart + j * 0.1)) / 0.3) }}>
+                        <LogoTile tool={e} size={16} />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* COMPANIES (qualify) */}
           {COMPANIES.map((c, i) => {
@@ -316,13 +365,13 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
               <NodeAt key={c.name} x={px(L.companies[i].x, L.w)} y={px(L.companies[i].y, L.h)} appear={a} reduced={reduce}>
                 <div
                   className="inline-flex items-center gap-2 rounded-lg bg-ink-900/85 border px-2.5 py-1.5 backdrop-blur-sm transition-all duration-500"
-                  style={{ opacity: dropped ? 0.4 : 1, borderColor: dropped ? "rgba(255,255,255,0.1)" : "rgba(124,245,208,0.3)" }}
+                  style={{ opacity: dropped ? 0.38 : 1, borderColor: dropped ? "rgba(255,255,255,0.1)" : "rgba(255,90,77,0.3)" }}
                 >
-                  <span className="font-mono text-[11.5px] text-white whitespace-nowrap">{c.name}</span>
+                  <span className="font-mono text-[11px] text-white whitespace-nowrap">{c.name}</span>
                   {decided && (
                     c.keep ? (
                       <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-accent/18 border border-accent/55">
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#7cf5d0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#ff5a4d" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                       </span>
                     ) : (
                       <span className="text-[10px] font-mono text-white/40">dropped</span>
@@ -333,91 +382,61 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
             );
           })}
 
-          {/* ENRICH hub: tools + inline label (the connectors pass through here) */}
-          {(() => {
-            const a = clamp01((dt - T.enrichStart) / 0.6);
-            if (a <= 0) return null;
-            return (
-              <>
-                <NodeAt x={px(L.enrich.x, L.w)} y={px(L.enrich.y, L.h)} appear={a} reduced={reduce}>
-                  <div className="flex items-center gap-1.5 rounded-full bg-ink-900/85 border border-white/12 px-2 py-1.5 backdrop-blur-sm">
-                    {ENRICH_TOOLS.map((e) => (
-                      <span key={e.label} className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-white shrink-0" title={e.label}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`/logos/${e.logo}.png`} alt={e.label} width={12} height={12} style={{ width: 12, height: 12 }} className="object-contain" />
-                      </span>
-                    ))}
-                  </div>
-                </NodeAt>
-                <Callout
-                  x={px(L.enrich.x, L.w)}
-                  y={px(L.enrich.y - L.h * 0.13, L.h)}
-                  anchor="center"
-                  tone="accent"
-                  label="Enrich"
-                  sub="site · socials · funding · tech"
-                  appear={seg(dt, T.enrichStart + 0.2, T.enrichStart + 1.0)}
-                  stem={{ dir: "down", len: 22 }}
-                  reduced={reduce}
-                />
-              </>
-            );
-          })()}
+          {/* DECISION-MAKER finder waterfall (multi-method) */}
+          <WaterfallCard
+            x={px(L.dmHub.x, L.w)}
+            y={px(L.dmHub.y, L.h)}
+            title="DM finder"
+            caption="first hit wins"
+            tone="accent"
+            tools={DM_WATERFALL}
+            start={T.dmStart}
+            stagger={T.dmStagger}
+            dt={dt}
+          />
 
-          {/* DECISION-MAKERS */}
-          {PEOPLE.map((p, i) => {
-            const a = clamp01((dt - (T.peopleStart + i * T.peopleStagger)) / 0.5);
-            if (a <= 0) return null;
-            return (
-              <div
-                key={p.name}
-                className="absolute z-20"
-                style={{ left: px(L.people[i].x, L.w), top: px(L.people[i].y, L.h), transform: "translate(0,-50%)", opacity: a }}
-              >
-                <div className="inline-flex items-center gap-2 rounded-lg bg-ink-800/90 border border-white/10 pl-1.5 pr-2.5 py-1 backdrop-blur-sm shadow-[0_4px_14px_rgba(0,0,0,0.4)]" style={{ transform: reduce ? "none" : `translateX(${(1 - easeOutBack(a)) * -14}px)` }}>
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[9.5px] font-mono text-ink-950 shrink-0" style={{ background: "linear-gradient(135deg,#7cf5d0,#7c5cff)" }}>{p.initials}</span>
-                  <span className="flex flex-col leading-tight">
-                    <span className="text-[11.5px] text-white whitespace-nowrap">{p.name}</span>
-                    <span className="text-[9.5px] text-white/45 whitespace-nowrap">{p.title}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {/* EMAIL finder waterfall (multi-provider) */}
+          <WaterfallCard
+            x={px(L.emailHub.x, L.w)}
+            y={px(L.emailHub.y, L.h)}
+            title="Email waterfall"
+            caption="pay-on-success"
+            tone="violet"
+            tools={EMAIL_WATERFALL}
+            start={T.emailStart}
+            stagger={T.emailStagger}
+            dt={dt}
+          />
 
-          {/* VERIFIED EMAILS */}
-          {PEOPLE.map((p, i) => {
-            const a = clamp01((dt - (T.emailStart + i * T.emailStagger)) / 0.5);
+          {/* VERIFIED CONTACTS (person + email together) */}
+          {CONTACTS.map((p, i) => {
+            const a = clamp01((dt - (T.contactStart + i * T.contactStagger)) / 0.5);
             if (a <= 0) return null;
             return (
               <div
                 key={p.email}
                 className="absolute z-20"
-                style={{ left: px(L.emails[i].x, L.w), top: px(L.emails[i].y, L.h), transform: "translate(0,-50%)", opacity: a }}
+                style={{ left: px(L.contacts[i].x, L.w), top: px(L.contacts[i].y, L.h), transform: "translate(0,-50%)", opacity: a }}
               >
-                <div className="inline-flex items-center gap-1.5 rounded-md bg-ink-800/90 border border-white/10 pl-1 pr-2 py-1 backdrop-blur-sm shadow-[0_4px_14px_rgba(0,0,0,0.4)]" style={{ transform: reduce ? "none" : `translateX(${(1 - easeOutBack(a)) * -14}px)` }}>
-                  <ProviderLogo provider={p.provider} size={16} />
-                  <span className="font-mono text-[10px] text-white/90 leading-none whitespace-nowrap">{p.email}</span>
-                  <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-accent/18 border border-accent/55 shrink-0">
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#7cf5d0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <div className="inline-flex items-center gap-2 rounded-lg bg-ink-800/92 border border-white/10 pl-1.5 pr-2.5 py-1 backdrop-blur-sm shadow-[0_4px_14px_rgba(0,0,0,0.4)]" style={{ transform: reduce ? "none" : `translateX(${(1 - easeOutBack(a)) * -14}px)` }}>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-mono text-ink-950 shrink-0" style={{ background: "linear-gradient(135deg,#ff5a4d,#7c5cff)" }}>{p.initials}</span>
+                  <span className="flex flex-col leading-tight min-w-0">
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-white whitespace-nowrap">{p.name}</span>
+                      <span className="text-[9px] text-white/40 whitespace-nowrap">· {p.title}</span>
+                    </span>
+                    <span className="flex items-center gap-1 mt-0.5">
+                      <ProviderLogo provider={p.provider} size={11} />
+                      <span className="font-mono text-[9.5px] text-white/65 leading-none whitespace-nowrap">{p.email}</span>
+                      <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-accent/18 border border-accent/55 shrink-0">
+                        <svg width="7" height="7" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#ff5a4d" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      </span>
+                    </span>
                   </span>
                 </div>
               </div>
             );
           })}
-
-          {/* waterfall label on the email stage */}
-          <Callout
-            x={px(L.emails[0].x, L.w)}
-            y={px(L.h * 0.9, L.h)}
-            anchor="center"
-            tone="violet"
-            label="Prospeo + 3 backups"
-            sub="verified waterfall · pay-on-success"
-            appear={seg(dt, T.emailStart + 0.2, T.emailStart + 1.0)}
-            reduced={reduce}
-            className="[&_*]:!normal-case"
-          />
         </>
       )}
 
@@ -427,6 +446,78 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
           Replay
         </button>
       )}
+    </div>
+  );
+}
+
+/** A logo tile (white bg for the real mark) or a named fallback tile. */
+function LogoTile({ tool, size = 15 }: { tool: Tool; size?: number }) {
+  if (tool.logo) {
+    return (
+      <span className="inline-flex items-center justify-center rounded-md bg-white shrink-0" style={{ width: size + 8, height: size + 8 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={`/logos/${tool.logo}.png`} alt={tool.label} width={size} height={size} style={{ width: size, height: size }} className="object-contain" />
+      </span>
+    );
+  }
+  const letters = tool.label.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase();
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-md bg-white/[0.08] border border-white/15 text-white/75 font-mono shrink-0"
+      style={{ width: size + 8, height: size + 8, fontSize: size * 0.62 }}
+    >
+      {letters}
+    </span>
+  );
+}
+
+/** A source/tool chip: logo tile + label. */
+function ToolChip({ tool, compact }: { tool: Tool; compact?: boolean }) {
+  return (
+    <div className={`inline-flex items-center gap-1.5 rounded-lg bg-ink-900/80 border border-white/10 backdrop-blur-sm ${compact ? "pl-1 pr-2 py-1" : "pl-1.5 pr-2.5 py-1.5"}`}>
+      <LogoTile tool={tool} size={compact ? 13 : 15} />
+      <span className={`${compact ? "text-[10.5px]" : "text-[11.5px]"} text-white/90 whitespace-nowrap leading-none`}>{tool.label}</span>
+    </div>
+  );
+}
+
+/** A vertical multi-method waterfall card — the "we use many methods" visual. */
+function WaterfallCard({
+  x, y, title, caption, tone, tools, start, stagger, dt,
+}: {
+  x: string; y: string; title: string; caption: string;
+  tone: "accent" | "violet"; tools: Tool[]; start: number; stagger: number; dt: number;
+}) {
+  const a = clamp01((dt - (start - 0.4)) / 0.5);
+  if (a <= 0) return null;
+  const accent = tone === "accent" ? "text-accent" : "text-violet-glow";
+  const ring = tone === "accent" ? "border-accent/30" : "border-violet-glow/35";
+  return (
+    <div className="absolute z-20" style={{ left: x, top: y, transform: "translate(-50%,-50%)", opacity: a }}>
+      <div className={`rounded-xl bg-ink-900/85 border ${ring} px-2 py-2 backdrop-blur-sm shadow-[0_8px_24px_rgba(0,0,0,0.4)]`}>
+        <div className={`text-[8.5px] font-mono uppercase tracking-[0.14em] ${accent} mb-1.5 px-0.5 text-center`}>{title}</div>
+        <div className="flex flex-col gap-1">
+          {tools.map((tl, i) => {
+            const ta = clamp01((dt - (start + i * stagger)) / 0.4);
+            return (
+              <div key={tl.label + i} className="flex items-center gap-1.5" style={{ opacity: ta, transform: `translateY(${(1 - ta) * -4}px)` }}>
+                <LogoTile tool={tl} size={12} />
+                <span className="text-[9.5px] text-white/80 whitespace-nowrap leading-none flex-1">{tl.label}</span>
+                {tl.verify ? (
+                  <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-accent/20 border border-accent/55 shrink-0">
+                    <svg width="7" height="7" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#ff5a4d" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </span>
+                ) : tl.note ? (
+                  <span className={`text-[7.5px] font-mono uppercase tracking-wide ${accent} opacity-70 shrink-0`}>{tl.note}</span>
+                ) : (
+                  <span className="text-white/25 text-[9px] shrink-0">↓</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="text-[7.5px] font-mono uppercase tracking-[0.12em] text-white/35 mt-1.5 text-center">{caption}</div>
+      </div>
     </div>
   );
 }

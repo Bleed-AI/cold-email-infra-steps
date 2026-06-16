@@ -121,8 +121,8 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
       ctx.fillStyle = g;
       ctx.fillRect(gx - r, gy - r, r * 2, r * 2);
     };
-    glow(ax, topY, easeOut(seg(t, T.testsStart, T.gaugeStart)), "rgba(124,245,208,");
-    glow(bx, topY, easeOut(seg(t, T.ringsStart, T.domainStart)), "rgba(124,245,208,");
+    glow(ax, topY, easeOut(seg(t, T.testsStart, T.gaugeStart)), "rgba(255,90,77,");
+    glow(bx, topY, easeOut(seg(t, T.ringsStart, T.domainStart)), "rgba(255,90,77,");
     glow(cxm, cy, easeOut(seg(t, T.campStart, T.campStart + 1.2)), "rgba(124,92,255,");
 
     // connectors between regions: draw once, then flow packets forever (seamless)
@@ -151,7 +151,7 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
         }
       }
     };
-    link(ax, topY + 12, bx, topY + 12, easeOut(seg(t, T.ringsStart - 0.2, T.ringsStart + 0.8)), "rgba(124,245,208,0.16)", "rgba(164,255,225,A)", 0.0);
+    link(ax, topY + 12, bx, topY + 12, easeOut(seg(t, T.ringsStart - 0.2, T.ringsStart + 0.8)), "rgba(255,90,77,0.16)", "rgba(255,150,135,A)", 0.0);
     link(bx, topY + 12, cxm, cy - 14, easeOut(seg(t, T.campStart - 0.2, T.campStart + 0.8)), "rgba(124,92,255,0.18)", "rgba(167,143,255,A)", 0.4);
   }, []);
 
@@ -206,7 +206,7 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
   return (
     <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-ink-950">
       <div className="absolute inset-0 bg-grid-fine opacity-[0.16]" />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(70% 60% at 60% 45%, rgba(124,245,208,0.07), transparent 60%)" }} />
+      <div className="absolute inset-0" style={{ background: "radial-gradient(70% 60% at 60% 45%, rgba(255,90,77,0.07), transparent 60%)" }} />
       <div className="noise" />
       <canvas ref={canvasRef} className="absolute inset-0" />
 
@@ -220,7 +220,7 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
 
       {/* live "optimizing" pulse */}
       <div className="absolute top-9 right-9 z-30 flex items-center gap-2 chip">
-        <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_10px_#7cf5d0] animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_10px_#ff5a4d] animate-pulse" />
         <span className="text-[12px] font-mono text-accent uppercase tracking-[0.14em]">optimizing · live</span>
       </div>
 
@@ -265,7 +265,7 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
                 <div className="mt-2.5 flex items-center justify-between text-[9px] font-mono uppercase tracking-[0.14em]">
                   <span className="text-white/35 tabular-nums">{ringsLive}/21 inboxes</span>
                   <span className="inline-flex items-center gap-2">
-                    <LegendDot color="#7cf5d0" label="healthy" />
+                    <LegendDot color="#ff5a4d" label="healthy" />
                     <LegendDot color="#facc6b" label="dip" />
                     <LegendDot color="#5b6472" label="rested" />
                   </span>
@@ -316,8 +316,8 @@ const EKG = "M0,18 L34,18 L40,8 L46,30 L52,18 L88,18 L94,8 L100,30 L106,18 L140,
 function Heartbeat() {
   return (
     <svg viewBox="0 0 140 36" className="w-full h-9" preserveAspectRatio="none" aria-hidden>
-      <path d={EKG} fill="none" stroke="rgba(124,245,208,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle r="2.6" fill="#7cf5d0" style={{ filter: "drop-shadow(0 0 5px #7cf5d0)" }}>
+      <path d={EKG} fill="none" stroke="rgba(255,90,77,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle r="2.6" fill="#ff5a4d" style={{ filter: "drop-shadow(0 0 5px #ff5a4d)" }}>
         <animateMotion dur="2.4s" repeatCount="indefinite" path={EKG} />
       </circle>
     </svg>
@@ -352,10 +352,10 @@ function DomainRow({ name, score, appear }: { name: string; score: number; appea
   const a = clamp01(appear);
   return (
     <div className="flex items-center gap-2.5" style={{ opacity: a, transform: `translateX(${(1 - easeOut(a)) * 12}px)` }}>
-      <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 shadow-[0_0_6px_#7cf5d0]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 shadow-[0_0_6px_#ff5a4d]" />
       <span className="font-mono text-[10.5px] text-white/75 truncate flex-1 min-w-0">{name}</span>
       <div className="w-14 h-1.5 rounded-full bg-white/[0.07] overflow-hidden shrink-0">
-        <div className="h-full rounded-full" style={{ width: `${score}%`, background: "linear-gradient(90deg,#7cf5d0,#a4ffe1)" }} />
+        <div className="h-full rounded-full" style={{ width: `${score}%`, background: "linear-gradient(90deg,#ff5a4d,#ff8a7d)" }} />
       </div>
       <span className="font-mono text-[10px] text-accent tabular-nums shrink-0 w-6 text-right">{score}</span>
     </div>
@@ -400,8 +400,8 @@ function Gauge({ value, appear }: { value: number; appear: number }) {
       <div className="relative" style={{ width: 88, height: 88 }}>
         <svg width="88" height="88" viewBox="0 0 96 96" className="-rotate-[135deg]">
           <circle cx="48" cy="48" r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${dash} ${C}`} />
-          <circle cx="48" cy="48" r={R} fill="none" stroke="url(#gaugeGrad)" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${dash} ${C}`} strokeDashoffset={offset} style={{ filter: "drop-shadow(0 0 6px rgba(124,245,208,0.6))" }} />
-          <defs><linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#7cf5d0" /><stop offset="100%" stopColor="#a4ffe1" /></linearGradient></defs>
+          <circle cx="48" cy="48" r={R} fill="none" stroke="url(#gaugeGrad)" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${dash} ${C}`} strokeDashoffset={offset} style={{ filter: "drop-shadow(0 0 6px rgba(255,90,77,0.6))" }} />
+          <defs><linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#ff5a4d" /><stop offset="100%" stopColor="#ff8a7d" /></linearGradient></defs>
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="font-display text-[22px] text-white leading-none tabular-nums">{value}%</span>
@@ -416,7 +416,7 @@ type Ring = { i: number; handle: string; appear: number; dips: boolean; paused: 
 function HealthRing({ ring, dt }: { ring: Ring; dt: number }) {
   const a = clamp01((dt - ring.appear) / T.ringDur);
   const fill = easeOut(a);
-  let color = "#7cf5d0";
+  let color = "#ff5a4d";
   let healthFrac = fill;
   if (ring.dips) {
     const dipStart = ring.appear + 1.2;
@@ -430,7 +430,7 @@ function HealthRing({ ring, dt }: { ring: Ring; dt: number }) {
   const PAUSE_AT = T.domainStart + 0.5;
   if (ring.paused) {
     const p = clamp01((dt - PAUSE_AT) / 0.6);
-    color = p > 0 ? lerpColor("#facc6b", "#5b6472", p) : "#7cf5d0";
+    color = p > 0 ? lerpColor("#facc6b", "#5b6472", p) : "#ff5a4d";
     if (dt >= PAUSE_AT - 0.9 && dt < PAUSE_AT) color = "#facc6b";
   }
   const R = 9;
@@ -465,7 +465,7 @@ function CampaignCard({ name, progress, appear, scaled, reduced }: { name: strin
         {scaled && <span className="shrink-0 inline-flex items-center gap-1 text-[9px] font-mono text-accent"><ArrowUp /> scaled</span>}
       </div>
       <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${clamp01(progress) * 100}%`, background: scaled ? "linear-gradient(90deg,#7cf5d0,#a4ffe1)" : "linear-gradient(90deg,#7c5cff,#9a82ff)" }} />
+        <div className="h-full rounded-full" style={{ width: `${clamp01(progress) * 100}%`, background: scaled ? "linear-gradient(90deg,#ff5a4d,#ff8a7d)" : "linear-gradient(90deg,#7c5cff,#9a82ff)" }} />
       </div>
       <div className="mt-1.5 flex items-center justify-between text-[9px] font-mono text-white/40 tabular-nums">
         <span>{Math.round(clamp01(progress) * 100)}% sent</span>

@@ -32,13 +32,13 @@ export default function DeckShell() {
           prev();
           break;
         default: {
-          // Number keys jump straight to a step (slide index === digit, since
-          // the Entry screen is index 0 and isn't a numbered step).
+          // Number keys jump straight to a step. Steps are 1-based for the
+          // user (Setup = "1") but 0-based as slide indices, so map n -> n-1.
           if (/^[1-9]$/.test(e.key)) {
             const n = Number(e.key);
-            if (n >= 1 && n < slides.length) {
+            if (n >= 1 && n <= slides.length) {
               e.preventDefault();
-              go(n);
+              go(n - 1);
             }
           }
         }

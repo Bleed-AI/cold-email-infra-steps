@@ -204,9 +204,9 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
     const engine = easeOut(seg(t, T.engineOn[0], T.engineOn[1]));
     if (engine > 0) {
       const g = ctx.createRadialGradient(field.cx, field.cy, 0, field.cx, field.cy, field.rx * 1.25);
-      g.addColorStop(0, `rgba(124,245,208,${0.09 * engine})`);
+      g.addColorStop(0, `rgba(255,90,77,${0.09 * engine})`);
       g.addColorStop(0.55, `rgba(124,92,255,${0.05 * engine})`);
-      g.addColorStop(1, "rgba(124,245,208,0)");
+      g.addColorStop(1, "rgba(255,90,77,0)");
       ctx.fillStyle = g;
       ctx.fillRect(field.cx - field.rx * 1.3, field.cy - field.rx * 1.3, field.rx * 2.6, field.rx * 2.6);
     }
@@ -226,7 +226,7 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
       ctx.quadraticCurveTo(mx, my, B.x, B.y);
-      ctx.strokeStyle = `rgba(124,245,208,${0.12 * live})`;
+      ctx.strokeStyle = `rgba(255,90,77,${0.12 * live})`;
       ctx.lineWidth = 1;
       ctx.stroke();
       if (live >= 1) {
@@ -241,7 +241,7 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
           const py = u * u * A.y + 2 * u * f * my + f * f * B.y;
           ctx.beginPath();
           ctx.arc(px, py, 1.8, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(164,255,225,${(0.45 + 0.4 * ramp) * fade})`;
+          ctx.fillStyle = `rgba(255,150,135,${(0.45 + 0.4 * ramp) * fade})`;
           ctx.fill();
         }
       }
@@ -253,8 +253,8 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
       if (p <= 0) continue;
       const n = nodes[i];
       const halo = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, 15);
-      halo.addColorStop(0, `rgba(124,245,208,${0.2 * p})`);
-      halo.addColorStop(1, "rgba(124,245,208,0)");
+      halo.addColorStop(0, `rgba(255,90,77,${0.2 * p})`);
+      halo.addColorStop(1, "rgba(255,90,77,0)");
       ctx.fillStyle = halo;
       ctx.fillRect(n.x - 16, n.y - 16, 32, 32);
     }
@@ -266,7 +266,7 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
       if (age < 0 || age > EVENT_LIFE) continue;
       const n = nodes[ev.node];
       const k = age / EVENT_LIFE;
-      const col = ev.kind === "replied" ? "124,92,255" : "124,245,208";
+      const col = ev.kind === "replied" ? "124,92,255" : "255,90,77";
       ctx.beginPath();
       ctx.arc(n.x, n.y, 6 + k * 20, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(${col},${0.55 * (1 - k)})`;
@@ -378,7 +378,7 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
                   style={{
                     width: 18,
                     height: 18,
-                    boxShadow: ev ? `0 0 0 2px ${ev.kind === "replied" ? "rgba(124,92,255,0.7)" : "rgba(124,245,208,0.7)"}, 0 2px 8px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.5)",
+                    boxShadow: ev ? `0 0 0 2px ${ev.kind === "replied" ? "rgba(124,92,255,0.7)" : "rgba(255,90,77,0.7)"}, 0 2px 8px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.5)",
                   }}
                 >
                   {outlook ? (
@@ -421,7 +421,7 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
             className="absolute z-30"
             style={{ left: px(L.field.cx, L.w), top: px(L.h * 0.225, L.h), transform: "translate(-50%,-50%)", opacity: clamp01((dt - T.readyAt) / 0.5) }}
           >
-            <span className="inline-flex items-center gap-2 rounded-full bg-accent/15 border border-accent/45 px-3.5 py-1.5 text-[11px] font-mono text-accent shadow-[0_6px_22px_rgba(124,245,208,0.16)]">
+            <span className="inline-flex items-center gap-2 rounded-full bg-accent/15 border border-accent/45 px-3.5 py-1.5 text-[11px] font-mono text-accent shadow-[0_6px_22px_rgba(255,90,77,0.16)]">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> 14 days completed · ready to launch
             </span>
           </div>

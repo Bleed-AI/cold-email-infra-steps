@@ -32,5 +32,5 @@ export function buildProspects(): Prospect[] {
 /** Total positive replies the run produces (kept in lockstep with the visuals). */
 export const REPLY_COUNT = REPLY_INDICES.size;
 
-/** Tunable on-screen cadence figure. */
-export const PER_INBOX_PER_DAY = 27;
+/** Tunable on-screen cadence figure. 24/inbox × 21 inboxes ≈ 500/day cap. */
+export const PER_INBOX_PER_DAY = 24;

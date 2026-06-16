@@ -17,9 +17,9 @@ export function makeScreenSlide(Screen: ComponentType<ScreenProps>) {
     const { client } = useClient();
     return (
       <Screen
-        businessName={client?.businessName ?? "your business"}
-        slug={client?.slug ?? "client"}
-        mainDomain={client?.mainDomain ?? "yourbrand.com"}
+        businessName={client.businessName}
+        slug={client.slug}
+        mainDomain={client.mainDomain}
         deckHandleRef={handleRef}
         onDone={onComplete}
       />

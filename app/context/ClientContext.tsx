@@ -24,7 +24,7 @@ export type SetClientInput = {
 };
 
 type ClientContextValue = {
-  client: ClientInfo | null;
+  client: ClientInfo;
   setClient: (input: SetClientInput) => void;
   reset: () => void;
 };
@@ -40,26 +40,39 @@ function toSlug(name: string): string {
   return cleaned || "client";
 }
 
+/**
+ * The walkthrough opens straight on the infrastructure (no input gate), so the
+ * client starts as a clean placeholder persona. The company name is editable
+ * live from the top nav, which keeps it usable on a sales call without a form.
+ */
+const DEFAULT_CLIENT: ClientInfo = {
+  businessName: "Acme",
+  slug: "acme",
+  mainDomain: "acme.com",
+  firstName: "Jordan",
+  lastName: "Avery",
+};
+
 export function ClientProvider({ children }: { children: React.ReactNode }) {
-  const [client, setClientState] = useState<ClientInfo | null>(null);
+  const [client, setClientState] = useState<ClientInfo>(DEFAULT_CLIENT);
 
   const setClient = useCallback((input: SetClientInput) => {
     const trimmed = input.businessName.trim();
     if (!trimmed) return;
     const slug = toSlug(trimmed);
     const domain = (input.mainDomain?.trim() || `${slug}.com`).toLowerCase();
-    const info: ClientInfo = {
+    setClientState((prev) => ({
       businessName: trimmed,
       slug,
       mainDomain: domain,
-      firstName: input.firstName?.trim() ?? "",
-      lastName: input.lastName?.trim() ?? "",
-    };
-    setClientState(info);
+      // Editing the company alone preserves the existing sender persona.
+      firstName: input.firstName?.trim() ?? prev.firstName,
+      lastName: input.lastName?.trim() ?? prev.lastName,
+    }));
   }, []);
 
   const reset = useCallback(() => {
-    setClientState(null);
+    setClientState(DEFAULT_CLIENT);
   }, []);
 
   const value = useMemo<ClientContextValue>(

@@ -7,57 +7,66 @@ import { useScrubClock, useDeckHandle, seg, easeOut, clamp01, lerp, phase } from
 import { NarrationRail, type NarrationStep } from "../lab/engine/NarrationRail";
 import { Callout } from "../lab/engine/Callout";
 
-// Two variable types (grounded in the real copy methodology):
-//   DATA = pulled straight from the row/enrichment (deterministic)
-//   AI   = written per-lead from scraped research (incl. the subject line)
+// Two variable types (grounded in the real /copy methodology):
+//   DATA = pulled straight from the row/enrichment (deterministic facts)
+//   AI   = written per-lead by reasoning over scraped research (incl. subject)
 const DATA_VARS = [
   { name: "first_name", val: "Emma" },
   { name: "company", val: "Brightwave Labs" },
   { name: "product_name", val: "Brightwave" },
   { name: "employee_count", val: "38" },
 ];
-const AI_VARS = [
-  { name: "subject_line", val: "outbound at Brightwave?" },
-  { name: "timing_observation", val: "you closed your Series A ~6 months ago" },
-  { name: "case_study_line", val: "booked 11 meetings in 30 days" },
-  { name: "ps_line", val: "reply rates run 5–14%" },
+
+// The showcase beat: AI reads 3 scraped facts and INFERS a tension none of them
+// state outright, then writes the opener from it. This is the "AI writes a line
+// from research" moment the founder wanted captured.
+const RESEARCH_FACTS = [
+  { src: "Crunchbase", fact: "Series A · closed ~6mo ago" },
+  { src: "LinkedIn", fact: "no VP Sales / Head of Growth" },
+  { src: "LinkedIn", fact: "headcount 38" },
 ];
+const AI_LINE =
+  "you closed your Series A about six months ago, which is usually right when the board starts asking for repeatable pipeline, not just founder-led deals";
 
 type Src = "data" | "ai" | null;
 type Tok = { t: string; s?: Src };
 // the assembled email — each token tagged by its source so the merge is visible
-const SUBJECT: Tok[] = [{ t: "outbound at " }, { t: "Brightwave", s: "data" }, { t: "?" }];
+const SUBJECT: Tok[] = [{ t: "who's filling the pipeline at " }, { t: "Brightwave", s: "data" }, { t: "?" }];
 const BODY: Tok[][] = [
-  [{ t: "Emma", s: "data" }, { t: ", " }, { t: "you closed your Series A about six months ago", s: "ai" }, { t: ". That usually means pipeline pressure is next." }],
-  [{ t: "We run the full outbound pipeline for Series A SaaS teams that aren't ready to hire an SDR: list building, copy, sequences, and reply management." }],
-  [{ t: "A similar team ", }, { t: "booked 11 meetings in their first 30 days", s: "ai" }, { t: "." }],
-  [{ t: "Worth a 20-minute call to see if it's a fit for " }, { t: "Brightwave Labs", s: "data" }, { t: "?" }],
+  [{ t: "Emma", s: "data" }, { t: ", " }, { t: AI_LINE, s: "ai" }, { t: "." }],
+  [{ t: "Most teams your size rush to hire an SDR, then spend two quarters and ~$90k watching them ramp. We run the whole outbound motion for you instead: list, copy, sending, replies." }],
+  [{ t: "A Series A team a lot like " }, { t: "Brightwave", s: "data" }, { t: " " }, { t: "booked 11 meetings in their first 30 days", s: "ai" }, { t: ", before they'd have finished onboarding a rep." }],
+  [{ t: "Want me to map out the first 30 days for " }, { t: "Brightwave", s: "data" }, { t: " specifically? No call yet, I can just send it over." }],
 ];
-const PS: Tok[] = [{ t: "P.S. " }, { t: "reply rates across SaaS campaigns run 5 to 14%", s: "ai" }, { t: ", depending on how tight the list is." }];
+const PS: Tok[] = [{ t: "P.S. " }, { t: "reply rates across these SaaS campaigns run 5 to 14%", s: "ai" }, { t: ", depending on how tight the list is." }];
 
 const VARIANTS = [
-  { id: "A", angle: "Save time", note: "no SDR to hire & ramp" },
+  { id: "A", angle: "Save time", note: "skip the SDR ramp" },
   { id: "B", angle: "Make money", note: "pipeline in 30 days" },
   { id: "C", angle: "Save money", note: "vs a $90k SDR + stack" },
 ];
 const FOLLOWUPS = [
-  { tag: "E1 · day 0", text: "The opener (above)" },
-  { tag: "E2 · day 3", text: "New angle + a concrete data play" },
-  { tag: "E3 · day 7", text: "Fresh thread, different value lens" },
+  { tag: "E1 · day 0", text: "Inferred-tension opener (above)" },
+  { tag: "E2 · day 3", text: "Reframe: buy proof before headcount" },
+  { tag: "E3 · day 7", text: "New thread: the cost of a flat quarter" },
 ];
 
 const T = {
   dataStart: 0.3,
-  dataStagger: 0.3,
-  aiStart: 2.4,
-  aiStagger: 0.34,
-  emailStart: 5.0,
-  lineStagger: 0.7,
-  variantStart: 9.2,
-  followStart: 10.6,
+  dataStagger: 0.28,
+  factStart: 1.9,
+  factStagger: 0.26,
+  typeStart: 3.0,
+  typeDur: 1.9,
+  emailStart: 6.0,
+  lineStagger: 0.66,
+  variantStart: 10.0,
+  followStart: 11.4,
 };
-const DURATION = 13.0;
+const DURATION = 14.0;
 const FLOW_PERIOD = 3.4;
+// progress (0..1) of the AI typing out its composed line
+const typeProgress = (dt: number) => clamp01((dt - T.typeStart) / T.typeDur);
 
 type Pt = { x: number; y: number };
 type Layout = { w: number; h: number; dataSrc: Pt; aiSrc: Pt; emailIn: Pt };
@@ -75,7 +84,7 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
   const steps: NarrationStep[] = useMemo(
     () => [
       { n: "01", title: "Two kinds of variables", detail: <p>Some come straight from the data (name, company, headcount). Others are written by AI from each lead&apos;s research — even the subject line.</p> },
-      { n: "02", title: "AI writes the personal lines", detail: <p>From the enrichment we scraped, the AI drafts a one-to-one observation, the proof line and the P.S. — grounded in real facts, not guesses.</p> },
+      { n: "02", title: "AI writes the line from research", detail: <p>It reads the scraped facts — Series A timing, no sales hire yet, headcount — and infers the tension <em>none of them state outright</em>, then writes the opener from it. Not a slotted token: a sentence composed for one person.</p> },
       { n: "03", title: "Merge both into the copy", detail: <p>Data variables and AI variables slot into a proven template, so every email reads like it was written by hand for that one person.</p> },
       { n: "04", title: "A/B/C value angles", detail: <p>The same offer runs through three value lenses — save time, make money, save money — so the best-performing message wins on real replies.</p> },
       { n: "05", title: "Follow-ups", detail: <p>Each angle becomes a short sequence over the next week, every touch adding something new — so {businessName} stays top-of-mind without nagging.</p> },
@@ -91,9 +100,9 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
     layoutRef.current = {
       w,
       h,
-      dataSrc: { x: w * 0.41, y: h * 0.3 },
-      aiSrc: { x: w * 0.41, y: h * 0.73 },
-      emailIn: { x: w * 0.56, y: h * 0.48 },
+      dataSrc: { x: w * 0.44, y: h * 0.26 },
+      aiSrc: { x: w * 0.44, y: h * 0.66 },
+      emailIn: { x: w * 0.57, y: h * 0.46 },
     };
   }, []);
 
@@ -116,7 +125,7 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
         const f = q / segs;
         ctx.lineTo(bz(a.x, c1.x, c2.x, b.x, f), bz(a.y, c1.y, c2.y, b.y, f));
       }
-      ctx.strokeStyle = pk === "data" ? "rgba(124,245,208,0.22)" : "rgba(124,92,255,0.26)";
+      ctx.strokeStyle = pk === "data" ? "rgba(255,90,77,0.22)" : "rgba(124,92,255,0.26)";
       ctx.lineWidth = 1.2;
       ctx.stroke();
       if (grow >= 1) {
@@ -127,7 +136,7 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
           const y = bz(a.y, c1.y, c2.y, b.y, f);
           ctx.beginPath();
           ctx.arc(x, y, 2, 0, Math.PI * 2);
-          ctx.fillStyle = pk === "data" ? `rgba(164,255,225,${0.9 * fade})` : `rgba(167,143,255,${0.9 * fade})`;
+          ctx.fillStyle = pk === "data" ? `rgba(255,150,135,${0.9 * fade})` : `rgba(167,143,255,${0.9 * fade})`;
           ctx.fill();
         }
       }
@@ -144,8 +153,8 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
       const breathe = 1 + 0.08 * Math.sin((t / FLOW_PERIOD) * Math.PI * 2);
       const r = 30 * breathe;
       const g = ctx.createRadialGradient(emailIn.x, emailIn.y, 0, emailIn.x, emailIn.y, r);
-      g.addColorStop(0, `rgba(150,200,255,${0.12 * mv})`);
-      g.addColorStop(1, "rgba(150,200,255,0)");
+      g.addColorStop(0, `rgba(255,190,170,${0.13 * mv})`);
+      g.addColorStop(1, "rgba(255,190,170,0)");
       ctx.fillStyle = g;
       ctx.fillRect(emailIn.x - r, emailIn.y - r, r * 2, r * 2);
     }
@@ -193,7 +202,7 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
   const controls = useScrubClock(onFrame, { duration: DURATION, reduced: reduce, autoPlay: !deckHandleRef, onDone, loop: true });
   useDeckHandle(controls, deckHandleRef);
 
-  const activeNarration = dt < T.aiStart ? 1 : dt < T.emailStart ? 2 : dt < T.variantStart ? 3 : dt < T.followStart ? 4 : 5;
+  const activeNarration = dt < T.typeStart ? 1 : dt < T.emailStart ? 2 : dt < T.variantStart ? 3 : dt < T.followStart ? 4 : 5;
   const bodyShown = BODY.filter((_, i) => dt > T.emailStart + 0.5 + i * T.lineStagger).length;
   const psShown = dt > T.emailStart + 0.5 + BODY.length * T.lineStagger;
   const showVariants = dt > T.variantStart;
@@ -233,18 +242,10 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
             stagger={T.dataStagger}
             dt={dt}
           />
-          {/* AI variable source */}
-          <VarSource
-            x={px(L.aiSrc.x, L.w)}
-            y={px(L.aiSrc.y, L.h)}
-            tone="ai"
-            title="AI variables"
-            sub="written from research"
-            vars={AI_VARS}
-            t0={T.aiStart}
-            stagger={T.aiStagger}
-            dt={dt}
-          />
+          {/* AI compose station — reads scraped research, infers the tension,
+              and TYPES the personalized opener. The showcase of "AI writes a
+              line from research." */}
+          <AiComposeStation x={px(L.aiSrc.x, L.w)} y={px(L.aiSrc.y, L.h)} dt={dt} reduced={reduce} />
 
           {/* EMAIL — the merge of both variable types */}
           <div
@@ -379,6 +380,67 @@ function VarSource({
         })}
       </div>
     </div>
+  );
+}
+
+/** The "AI writes a line from research" station: scraped facts → inferred line. */
+function AiComposeStation({ x, y, dt, reduced }: { x: string; y: string; dt: number; reduced?: boolean }) {
+  const station = clamp01((dt - (T.factStart - 0.4)) / 0.5);
+  if (station <= 0) return null;
+  const prog = typeProgress(dt);
+  const chars = Math.floor(prog * AI_LINE.length);
+  const typed = AI_LINE.slice(0, chars);
+  const typing = prog > 0 && prog < 1;
+  const lineRevealed = dt > T.typeStart - 0.2;
+
+  return (
+    <div className="absolute z-20" style={{ left: x, top: y, transform: "translate(-50%,-50%)", width: 234, opacity: station }}>
+      <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-violet-glow mb-1.5 flex items-center gap-1.5">
+        <Spark /> AI <span className="text-white/35 normal-case tracking-normal lowercase">· reads the research</span>
+      </div>
+
+      {/* scraped facts (hard data, red) the AI reasons over */}
+      <div className="space-y-1">
+        {RESEARCH_FACTS.map((f, i) => {
+          const a = clamp01((dt - (T.factStart + i * T.factStagger)) / 0.45);
+          if (a <= 0) return null;
+          return (
+            <div
+              key={f.fact}
+              className="flex items-center gap-1.5 rounded-md bg-ink-900/80 border border-accent/30 px-2 py-1 backdrop-blur-sm"
+              style={{ opacity: a, transform: reduced ? "none" : `translateX(${(1 - a) * -10}px)` }}
+            >
+              <span className="text-[8px] font-mono uppercase tracking-[0.1em] text-accent/75 shrink-0">{f.src}</span>
+              <span className="text-[10px] text-white/85 truncate">{f.fact}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* infer → compose */}
+      {lineRevealed && (
+        <>
+          <div className="my-1.5 flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.14em] text-violet-glow/80">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            infers the tension, writes the opener
+          </div>
+          <div className="rounded-lg bg-violet-glow/[0.08] border border-violet-glow/35 px-2.5 py-2 min-h-[52px]">
+            <p className="text-[11px] leading-snug text-violet-glow">
+              {typed}
+              {typing && <span className="inline-block w-[2px] h-[12px] -mb-[1px] ml-[1px] bg-violet-glow animate-pulse" />}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Spark() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" fill="currentColor" />
+    </svg>
   );
 }
 

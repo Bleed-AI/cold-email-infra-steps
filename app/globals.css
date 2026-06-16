@@ -6,7 +6,7 @@
   --bg: #050608;
   --fg: #e7ecf3;
   --muted: #7d8597;
-  --accent: #7cf5d0;
+  --accent: #ff5a4d;
   --accent-2: #7c5cff;
   --line: rgba(255, 255, 255, 0.08);
 }
@@ -42,7 +42,7 @@ html.lenis body {
 }
 
 ::selection {
-  background: rgba(124, 245, 208, 0.25);
+  background: rgba(255, 90, 77, 0.25);
   color: #fff;
 }
 
@@ -72,7 +72,7 @@ html.lenis body {
 .bg-radial-fade {
   background: radial-gradient(
     circle at center,
-    rgba(124, 245, 208, 0.08) 0%,
+    rgba(255, 90, 77, 0.08) 0%,
     rgba(5, 6, 8, 0) 60%
   );
 }
@@ -102,7 +102,7 @@ html.lenis body {
 }
 
 .text-gradient-accent {
-  background: linear-gradient(90deg, #7cf5d0 0%, #a4ffe1 50%, #7c5cff 100%);
+  background: linear-gradient(90deg, #ff5a4d 0%, #ff8a7d 50%, #7c5cff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -120,8 +120,8 @@ html.lenis body {
 }
 
 .glow-accent {
-  box-shadow: 0 0 0 1px rgba(124, 245, 208, 0.25),
-    0 0 40px rgba(124, 245, 208, 0.25), inset 0 0 24px rgba(124, 245, 208, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 90, 77, 0.25),
+    0 0 40px rgba(255, 90, 77, 0.25), inset 0 0 24px rgba(255, 90, 77, 0.08);
 }
 
 .glow-violet {
@@ -173,7 +173,7 @@ html.lenis body {
 }
 
 .flow-line {
-  stroke: rgba(124, 245, 208, 0.4);
+  stroke: rgba(255, 90, 77, 0.4);
   stroke-width: 1.25;
   fill: none;
 }

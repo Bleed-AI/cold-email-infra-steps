@@ -29,7 +29,12 @@ export function NarrationRail({
   reduced?: boolean;
 }) {
   return (
-    <div className="absolute top-0 left-0 h-full w-[34%] max-w-[440px] min-w-[300px] z-20 px-8 md:px-10 py-10 flex flex-col">
+    <div className="absolute top-0 left-0 h-full w-[34%] max-w-[440px] min-w-[300px] z-20 px-8 md:px-10 py-9 flex flex-col">
+      {/* Consistent BleedAI brand lockup — present on every screen. */}
+      <div className="mb-5 flex items-center self-start">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logos/bleedai.svg" alt="BleedAI" className="h-[18px] w-auto opacity-95" />
+      </div>
       <div className="chip mb-5 self-start">{eyebrow}</div>
       <h2 className="font-display text-[26px] md:text-[34px] leading-[1.02] tracking-[-0.02em] mb-6">
         {headline}

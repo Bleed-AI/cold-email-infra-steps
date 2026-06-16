@@ -6,7 +6,7 @@ import { clamp01, easeOut } from "./useScrubClock";
 type Tone = "accent" | "violet" | "muted";
 
 const TONE: Record<Tone, { border: string; text: string; dot: string }> = {
-  accent: { border: "border-accent/40", text: "text-accent", dot: "#7cf5d0" },
+  accent: { border: "border-accent/40", text: "text-accent", dot: "#ff5a4d" },
   violet: { border: "border-violet-glow/45", text: "text-violet-glow", dot: "#7c5cff" },
   muted: { border: "border-white/18", text: "text-white/75", dot: "rgba(255,255,255,0.55)" },
 };

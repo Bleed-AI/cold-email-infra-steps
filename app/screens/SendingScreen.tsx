@@ -112,7 +112,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
         ctx.beginPath();
         ctx.moveTo(hub.x, hub.y);
         ctx.bezierCurveTo(midx, hub.y, midx, d.y, tx, d.y);
-        ctx.strokeStyle = `rgba(124,245,208,${0.08 * lane})`;
+        ctx.strokeStyle = `rgba(255,90,77,${0.08 * lane})`;
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -125,7 +125,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
           const y = bez(hub.y, hub.y, d.y, d.y, f);
           ctx.beginPath();
           ctx.arc(x, y, 2.1, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(164,255,225,${0.85 * fade * lane})`;
+          ctx.fillStyle = `rgba(255,150,135,${0.85 * fade * lane})`;
           ctx.fill();
         }
 
@@ -213,7 +213,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
   return (
     <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-ink-950">
       <div className="absolute inset-0 bg-grid-fine opacity-[0.16]" />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(70% 60% at 60% 50%, rgba(124,245,208,0.06), transparent 60%)" }} />
+      <div className="absolute inset-0" style={{ background: "radial-gradient(70% 60% at 60% 50%, rgba(255,90,77,0.06), transparent 60%)" }} />
       <div className="noise" />
       <canvas ref={canvasRef} className="absolute inset-0" />
 
@@ -227,7 +227,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
 
       {/* live "emails sent" counter */}
       <div className="absolute top-9 right-9 z-30 flex items-center gap-2 chip">
-        <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_10px_#7cf5d0] animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_10px_#ff5a4d] animate-pulse" />
         <span className="font-display text-[20px] text-white leading-none tabular-nums">{sent.toLocaleString()}</span>
         <span className="text-white/45">emails sent</span>
       </div>
@@ -298,7 +298,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
                 className="absolute z-20"
                 style={{ left: px(p.x, L.w), top: px(p.y, L.h), transform: `translate(-50%,-50%) translateX(${(1 - easeOut(a)) * 26}px)`, opacity: a, width: "min(250px, 20vw)" }}
               >
-                <div className="rounded-xl bg-ink-800/95 border px-3 py-2 backdrop-blur-sm shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-colors" style={{ borderColor: replied ? "rgba(124,92,255,0.5)" : landed ? "rgba(124,245,208,0.32)" : "rgba(255,255,255,0.1)" }}>
+                <div className="rounded-xl bg-ink-800/95 border px-3 py-2 backdrop-blur-sm shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-colors" style={{ borderColor: replied ? "rgba(124,92,255,0.5)" : landed ? "rgba(255,90,77,0.32)" : "rgba(255,255,255,0.1)" }}>
                   <div className="flex items-center gap-2.5">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full shrink-0 text-[11px] font-mono text-white/80" style={{ background: `hsl(${(i * 47) % 360} 45% 22%)`, border: "1px solid rgba(255,255,255,0.12)" }}>
                       {prospects[i].name.split(" ").map((s) => s[0]).join("")}
@@ -313,7 +313,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
                           <ReplyIcon /> replied
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] font-mono transition-all" style={{ opacity: landed ? 1 : 0, background: "rgba(124,245,208,0.12)", border: "1px solid rgba(124,245,208,0.4)", color: "#7cf5d0" }}>
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] font-mono transition-all" style={{ opacity: landed ? 1 : 0, background: "rgba(255,90,77,0.12)", border: "1px solid rgba(255,90,77,0.4)", color: "#ff5a4d" }}>
                           <CheckIcon /> inbox
                         </span>
                       )}

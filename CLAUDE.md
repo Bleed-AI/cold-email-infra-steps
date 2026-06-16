@@ -45,6 +45,10 @@ on a foreground browser. Always state that distinction honestly.
 - Node is at `C:\Program Files\nodejs` — prefix PowerShell with `$env:Path = "C:\Program Files\nodejs;$env:Path"`.
 - Multiple dev servers sharing `.next` corrupt the cache → 404s. Keep ONE dev server; if thrashed,
   kill it, `rm -rf .next`, restart.
+- **NEVER start the dev server with a detached shell** (`(npm run dev &)` / `npm run dev > log 2>&1 &`).
+  That orphans the process — it keeps running (in resource-heavy dev mode) after the session is killed.
+  Start long-running servers via the Bash tool's `run_in_background: true` (harness-managed; dies with
+  the session), and **kill the dev server when the task is done** — don't leave it running.
 
 ## v2 REDESIGN — SHIPPED (2026-06-13)
 The substantial v2 animation pass is **done and pushed to `main`**. Full brief +
@@ -70,9 +74,29 @@ nine headlines landed:
 **Perf rule baked into every screen:** stop pushing per-frame React state (`setDt`) once the build
 completes (`pushedRef` gate) — ambient motion runs on canvas-rAF + CSS/SMIL, not React re-renders.
 
-**Open item:** the Live-sending **~27 emails/inbox/day** label is unconfirmed (27×21≈567 vs the
-documented 500/day campaign cap ≈ 24/inbox). Confirm the real figure with the user and adjust
-`PER_INBOX_PER_DAY` in `app/screens/prospects.ts`.
+## v3 POLISH — SHIPPED (2026-06-16)
+Built on v2; full brief in `docs/redesign-v3-spec.md` (historical). All verified live + `next build` clean:
+1. **BleedAI red re-theme** — `accent` mint→**red** (`#ff5a4d` / `#ff8a7d` / `#d41a16`); **violet kept**
+   as the cool secondary. Swept tokens (`tailwind.config.ts`, `globals.css`) + every canvas rgba literal
+   across all screens (mechanical `124,245,208`→`255,90,77`, `164,255,225`→`255,150,135`, `#7cf5d0`→`#ff5a4d`).
+   Monitoring keeps good-vs-bad legible: **healthy=red, dip=amber `#f59e0b`, rested=slate** (no red-on-red).
+2. **Entry screen removed** — deck opens straight on Setup. `ClientContext` defaults to **Acme**; the
+   company is editable **inline from the top nav** (`CompanyChip` in `TimelineNav` → `setClient` +
+   `replay(activeId)`, propagates + replays). Index-shift refactor done: `DeckProvider` `unlocked:true`,
+   `START`/`start()` removed, `DeckShell` number keys `go(n-1)`, `DeckControls` 1-based. `EntrySlide` deleted.
+3. **Brand lockup** — `public/logos/bleedai.svg` (real, from bleedai.com) in the `NarrationRail` header →
+   one edit, shows on all 6 screens, collision-free.
+4. **AI-copy** regenerated to the real `/copy` bar (Emma/Brightwave, inferred-tension opener, no em-dashes,
+   A/B/C + follow-ups) + new **AiComposeStation**: 3 scraped facts → AI **types** the line (the "writes from
+   research" beat). Keys unchanged (DATA=red, AI=violet).
+5. **List-building → vast network**: 12-source cloud (+28 more) → 6-tool enrich stack → **DM finder
+   waterfall** (Prospeo→Surfe→MixRank→OpenMart) → **email waterfall** (Kitt→LeadMagic→Prospeo→Findymail→
+   TryKit verify) → verified contacts. Grounded in `bleedai-campaign-master/knowledge-base/methods`.
+6. **Resolved open item:** `PER_INBOX_PER_DAY` set to **24** (24×21≈504 ≈ the 500/day cap) in
+   `app/screens/prospects.ts`. Confirm exact figure with Taha if he prefers a different number.
+
+Seamless loop re-verified (canvas hash) on the rebuilt Copy + List-building screens; inline company-edit
+propagation verified live.
 
 ## Conventions
 - Match surrounding code: functional components, hooks, Tailwind classes, the existing tokens.

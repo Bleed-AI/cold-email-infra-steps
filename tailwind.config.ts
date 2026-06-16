@@ -21,13 +21,17 @@ const config: Config = {
           600: "#1f2533",
         },
         accent: {
-          DEFAULT: "#7cf5d0",
-          500: "#7cf5d0",
-          400: "#a4ffe1",
-          600: "#3fd7ad",
+          DEFAULT: "#ff5a4d",
+          500: "#ff5a4d",
+          400: "#ff8a7d",
+          600: "#d41a16",
+          700: "#b1130f",
         },
         violet: {
           glow: "#7c5cff",
+        },
+        amber: {
+          glow: "#f59e0b",
         },
       },
       keyframes: {

@@ -158,8 +158,8 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
       const breathe = 1 + 0.06 * Math.sin((t / REDIRECT_PERIOD) * Math.PI * 2);
       const r = 86 * breathe;
       const g = ctx.createRadialGradient(primary.x, primary.y, 0, primary.x, primary.y, r);
-      g.addColorStop(0, `rgba(124,245,208,${0.22 * pIn})`);
-      g.addColorStop(1, "rgba(124,245,208,0)");
+      g.addColorStop(0, `rgba(255,90,77,${0.22 * pIn})`);
+      g.addColorStop(1, "rgba(255,90,77,0)");
       ctx.fillStyle = g;
       ctx.fillRect(primary.x - r - 10, primary.y - r - 10, (r + 10) * 2, (r + 10) * 2);
     }
@@ -176,7 +176,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
       ctx.beginPath();
       ctx.moveTo(primary.x, primary.y);
       ctx.bezierCurveTo(midx, primary.y, midx, ey, ex, ey);
-      ctx.strokeStyle = "rgba(124,245,208,0.3)";
+      ctx.strokeStyle = "rgba(255,90,77,0.3)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
@@ -189,8 +189,8 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
         const fade = Math.sin(Math.PI * f);
         ctx.beginPath();
         ctx.arc(bx, by, 2.6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(164,255,225,${0.95 * fade})`;
-        ctx.shadowColor = "rgba(124,245,208,0.9)";
+        ctx.fillStyle = `rgba(255,150,135,${0.95 * fade})`;
+        ctx.shadowColor = "rgba(255,90,77,0.9)";
         ctx.shadowBlur = 8;
         ctx.fill();
         ctx.shadowBlur = 0;
@@ -209,7 +209,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
           ctx.beginPath();
           ctx.moveTo(s.x, s.y);
           ctx.lineTo(mx, my);
-          ctx.strokeStyle = "rgba(124,245,208,0.22)";
+          ctx.strokeStyle = "rgba(255,90,77,0.22)";
           ctx.lineWidth = 1.1;
           ctx.stroke();
 
@@ -340,7 +340,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
       <div className="absolute inset-0 bg-grid-fine opacity-[0.16]" />
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(70% 60% at 58% 50%, rgba(124,245,208,0.07), transparent 60%)" }}
+        style={{ background: "radial-gradient(70% 60% at 58% 50%, rgba(255,90,77,0.07), transparent 60%)" }}
       />
       <div className="noise" />
       <canvas ref={canvasRef} className="absolute inset-0" />
@@ -372,7 +372,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
           <Node x={px(L.primary.x, L.w)} y={px(L.primary.y, L.h)} appear={seg(dt, T.primaryIn[0], T.primaryIn[1])} reduced={reduce}>
             <div className="flex flex-col items-center gap-1.5">
               <div className="inline-flex items-center gap-1.5 rounded-lg bg-accent/12 border border-accent/45 px-3 py-2 backdrop-blur-sm">
-                <span className="w-2 h-2 rounded-full bg-accent shadow-[0_0_10px_#7cf5d0]" />
+                <span className="w-2 h-2 rounded-full bg-accent shadow-[0_0_10px_#ff5a4d]" />
                 <span className="font-mono text-[13px] text-white">{mainDomain}</span>
               </div>
               <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-accent/70">primary domain</span>
@@ -397,7 +397,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
             return (
               <Node key={name} x={px(x, cur.w)} y={px(y, cur.h)} appear={clamp01(grow * 1.4)} reduced={reduce}>
                 <div className="flex items-center gap-1.5 rounded-md bg-ink-900/70 border border-white/10 px-2 py-1 backdrop-blur-sm">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: "#7cf5d0", boxShadow: "0 0 8px #7cf5d0" }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: "#ff5a4d", boxShadow: "0 0 8px #ff5a4d" }} />
                   <span className="font-mono text-[11.5px] text-white whitespace-nowrap leading-none">{name}</span>
                 </div>
               </Node>
@@ -433,13 +433,13 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
                   <span
                     className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full shrink-0 transition-all duration-300"
                     style={{
-                      background: authOk ? "rgba(124,245,208,0.18)" : "rgba(255,255,255,0.06)",
-                      border: `1px solid ${authOk ? "rgba(124,245,208,0.6)" : "rgba(255,255,255,0.14)"}`,
+                      background: authOk ? "rgba(255,90,77,0.18)" : "rgba(255,255,255,0.06)",
+                      border: `1px solid ${authOk ? "rgba(255,90,77,0.6)" : "rgba(255,255,255,0.14)"}`,
                     }}
                   >
                     {authOk && (
                       <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
-                        <path d="M5 13l4 4L19 7" stroke="#7cf5d0" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M5 13l4 4L19 7" stroke="#ff5a4d" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                   </span>
