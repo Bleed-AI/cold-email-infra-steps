@@ -350,7 +350,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
         eyebrow={<><span className="dot" /> Step 01 · Setup · ~1 day</>}
         headline={
           <>
-            <span className="text-gradient">We build {businessName}&apos;s</span>
+            <span className="text-gradient">How We build Your</span>
             <br />
             <span className="text-gradient-accent">sending infrastructure.</span>
           </>

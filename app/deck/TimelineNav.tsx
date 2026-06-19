@@ -124,8 +124,6 @@ export default function TimelineNav() {
           className="fixed top-0 inset-x-0 z-50 flex justify-center px-4 pt-4 pointer-events-none"
         >
           <div className="pointer-events-auto flex items-center gap-1 rounded-full glass px-2 py-2 max-w-[94vw] overflow-x-auto no-scrollbar">
-            <CompanyChip />
-            <span className="shrink-0 w-px h-5 bg-white/10 mx-0.5" />
             {steps.map(({ def, index }, n) => {
               const state =
                 index === activeIndex
