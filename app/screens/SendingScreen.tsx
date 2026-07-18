@@ -218,7 +218,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 05 · Live sending</>}
+        eyebrow={<><span className="dot" /> Step 07 · Live sending</>}
         headline={<><span className="text-gradient">We go live</span><br /><span className="text-gradient-accent">and the replies come in.</span></>}
         steps={steps}
         activeCount={activeNarration}

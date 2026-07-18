@@ -16,33 +16,25 @@ import {
 import { NarrationRail, type NarrationStep } from "../lab/engine/NarrationRail";
 
 // ── beat timeline (seconds) ──
+// A/B testing lives on the Weekly Wins slide (Step 09). This slide is pure
+// infrastructure health — deliverability → per-mailbox → domains → campaigns.
 const T = {
-  testsStart: 0.4,
-  testStagger: 0.5,
-  gaugeStart: 2.6,
+  gaugeStart: 0.4,
   gaugeDur: 2.6,
-  ringsStart: 4.0,
+  ringsStart: 2.4,
   ringStagger: 0.05,
   ringDur: 0.6,
-  domainStart: 6.0,
+  domainStart: 4.4,
   domainStagger: 0.18,
-  campStart: 8.0,
+  campStart: 6.4,
   campStagger: 0.45,
   campBarDur: 3.0,
 };
-const DURATION = 12.0;
+const DURATION = 10.4;
 const BASE = 3.6; // ambient period (canvas glow + packets)
 
 const N_RINGS = 21;
 const DELIVERABILITY = 98;
-
-// What we A/B test — the three real dimensions (not just "copy variants").
-const TESTS = [
-  { dim: "Subject lines", opts: ["quick question about {co}", "{co} — a 12-min idea"], winner: 1 },
-  { dim: "CTAs", opts: ["worth a quick call?", "want a sample first?"], winner: 0 },
-  { dim: "Offer angles", opts: ["save time", "make money", "save money"], winner: 1 },
-];
-const REPLY_RATE = 8.2;
 
 type Campaign = { name: string; target: number; start: number };
 
@@ -88,10 +80,10 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "We A/B test everything", detail: <p>Subject lines, CTAs and offer angles all run head-to-head — the versions that book the most replies win and scale.</p> },
-      { n: "02", title: "Mailbox health is watched", detail: <p>Every mailbox&apos;s deliverability is monitored. If one dips, it&apos;s pulled and rested before it can drag down the rest.</p> },
-      { n: "03", title: "Domains are watched too", detail: <p>Each sending domain&apos;s reputation and blacklist status is tracked continuously — a problem domain is caught early.</p> },
-      { n: "04", title: "Always optimizing", detail: <p>Winners scale, weak inboxes rest, new campaigns launch — the system keeps <span className="text-white/80">{businessName}</span>&apos;s reply rate climbing, evergreen.</p> },
+      { n: "01", title: "Deliverability watched in real time", detail: <p>Every send, open, reply and bounce is tracked — the moment a metric drifts, the system flags it.</p> },
+      { n: "02", title: "Per-mailbox health, 24/7", detail: <p>Every one of {businessName}&apos;s mailboxes is scored on its own reputation. If one dips, it&apos;s pulled and rested before it can drag the others down.</p> },
+      { n: "03", title: "Domain reputation & blacklists", detail: <p>Each sending domain is checked against blacklists and reputation feeds continuously — a problem domain is caught early, not after a whole campaign burns.</p> },
+      { n: "04", title: "Auto-heal · quiet, weak inboxes rest", detail: <p>Weak inboxes rest, warm replacements rotate in, campaigns keep sending. The infrastructure looks after itself so {businessName}&apos;s sending stays evergreen.</p> },
     ],
     [businessName]
   );
@@ -121,7 +113,8 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
       ctx.fillStyle = g;
       ctx.fillRect(gx - r, gy - r, r * 2, r * 2);
     };
-    glow(ax, topY, easeOut(seg(t, T.testsStart, T.gaugeStart)), "rgba(255,90,77,");
+    // Row 1 glow (behind the deliverability card, now spanning full width)
+    glow(cxm, topY, easeOut(seg(t, T.gaugeStart, T.gaugeStart + 1.2)), "rgba(255,90,77,");
     glow(bx, topY, easeOut(seg(t, T.ringsStart, T.domainStart)), "rgba(255,90,77,");
     glow(cxm, cy, easeOut(seg(t, T.campStart, T.campStart + 1.2)), "rgba(124,92,255,");
 
@@ -197,10 +190,9 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
   const controls = useScrubClock(onFrame, { duration: DURATION, reduced: reduce, autoPlay: !deckHandleRef, onDone, loop: true });
   useDeckHandle(controls, deckHandleRef);
 
-  const activeNarration = dt >= T.campStart ? 4 : dt >= T.domainStart ? 3 : dt >= T.ringsStart ? 2 : dt >= T.testsStart ? 1 : 0;
+  const activeNarration = dt >= T.campStart ? 4 : dt >= T.domainStart ? 3 : dt >= T.ringsStart ? 2 : dt >= T.gaugeStart ? 1 : 0;
   const ringsLive = rings.filter((r) => dt >= r.appear).length;
   const deliverNow = Math.round(lerp(0, DELIVERABILITY, easeOut(seg(dt, T.gaugeStart, T.gaugeStart + T.gaugeDur))));
-  const replyNow = lerp(0, REPLY_RATE, easeOut(seg(dt, T.testsStart + 0.5, T.testsStart + 3.0)));
   const campsLive = campaigns.filter((c) => dt >= c.start).length;
 
   return (
@@ -211,8 +203,8 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 06 · A/B testing &amp; monitoring</>}
-        headline={<><span className="text-gradient">We watch</span><br /><span className="text-gradient-accent">and we tune.</span></>}
+        eyebrow={<><span className="dot" /> Step 10 · Monitoring · always-on health</>}
+        headline={<><span className="text-gradient">The infrastructure</span><br /><span className="text-gradient-accent">looks after itself.</span></>}
         steps={steps}
         activeCount={activeNarration}
         reduced={reduce}
@@ -227,28 +219,22 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
       {/* DASHBOARD (right ~66%) */}
       <div className="absolute inset-0 z-20 pointer-events-none">
         <div className="absolute top-0 bottom-0 right-0 flex flex-col gap-3 px-6 md:px-8 pt-[60px] pb-[74px]" style={{ left: "min(34%, 440px)" }}>
-          {/* row 1: A/B testing + deliverability */}
-          <div className="grid grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-3.5" style={{ flex: "1.1 1 0%", minHeight: 0 }}>
-            <RegionCard appear={seg(dt, T.testsStart, T.testsStart + 0.6)} reduced={reduce}>
-              <RegionHead kicker="A/B testing" title="Subject lines · CTAs · offer angles" live={dt > T.testsStart + 1.6} />
-              <div className="mt-3 space-y-2.5">
-                {TESTS.map((test, i) => (
-                  <TestRow key={test.dim} test={test} businessName={businessName} appear={clamp01(seg(dt, T.testsStart + 0.3 + i * T.testStagger, T.testsStart + 0.3 + i * T.testStagger + 0.5))} decided={dt > T.testsStart + 0.3 + i * T.testStagger + 0.9} />
-                ))}
-              </div>
-              <div className="mt-3 pt-2.5 border-t border-white/8 flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-white/40">best reply rate</span>
-                <span className="font-display text-[18px] text-accent tabular-nums">{replyNow.toFixed(1)}%</span>
-              </div>
-            </RegionCard>
-
+          {/* row 1: deliverability — the top-of-mind health signal, full width */}
+          <div style={{ flex: "0.85 1 0%", minHeight: 0 }}>
             <RegionCard appear={seg(dt, T.gaugeStart - 0.2, T.gaugeStart + 0.4)} reduced={reduce}>
               <RegionHead kicker="Deliverability" title="Landing in the inbox" live={dt > T.gaugeStart + 0.5} />
-              <div className="mt-2 flex items-center gap-4">
+              <div className="mt-2 flex items-center gap-6">
                 <Gauge value={deliverNow} appear={seg(dt, T.gaugeStart - 0.2, T.gaugeStart + 0.4)} />
                 <div className="flex-1 min-w-0">
                   <Heartbeat />
-                  <div className="mt-2 text-[10px] font-mono text-white/40 leading-relaxed">Inbox placement, opens and spam-rate tracked in real time — an evergreen pulse on every send.</div>
+                  <div className="mt-2 text-[11px] font-mono text-white/45 leading-relaxed max-w-[520px]">
+                    Inbox placement, opens, replies and spam-rate tracked in real time — every send checked as it lands, so a drift is caught instantly.
+                  </div>
+                </div>
+                <div className="hidden lg:flex flex-col gap-2 shrink-0 border-l border-white/8 pl-6">
+                  <StatMini label="Inbox placement" value={`${deliverNow}%`} tone="accent" />
+                  <StatMini label="Bounces" value="< 1%" tone="muted" />
+                  <StatMini label="Complaints" value="0.02%" tone="muted" />
                 </div>
               </div>
             </RegionCard>
@@ -324,26 +310,12 @@ function Heartbeat() {
   );
 }
 
-/* ── A/B test dimension row ── */
-function TestRow({ test, businessName, appear, decided }: { test: { dim: string; opts: string[]; winner: number }; businessName: string; appear: number; decided: boolean }) {
-  const a = clamp01(appear);
+/* ── Compact metric readout (right side of the deliverability card) ── */
+function StatMini({ label, value, tone }: { label: string; value: string; tone: "accent" | "muted" }) {
   return (
-    <div style={{ opacity: a, transform: `translateX(${(1 - easeOut(a)) * 14}px)` }}>
-      <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-accent/70 mb-1">{test.dim}</div>
-      <div className="flex flex-wrap gap-1.5">
-        {test.opts.map((o, i) => {
-          const won = decided && i === test.winner;
-          return (
-            <span
-              key={i}
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-mono border transition-all ${won ? "bg-accent/15 border-accent/50 text-accent" : decided ? "bg-white/[0.02] border-white/8 text-white/35" : "bg-white/[0.04] border-white/12 text-white/65"}`}
-            >
-              {won && <CheckMini />}
-              {o.replace("{co}", businessName)}
-            </span>
-          );
-        })}
-      </div>
+    <div className="flex flex-col leading-tight">
+      <span className="text-[8.5px] font-mono uppercase tracking-[0.16em] text-white/40">{label}</span>
+      <span className={`font-display text-[16px] tabular-nums ${tone === "accent" ? "text-accent" : "text-white/85"}`}>{value}</span>
     </div>
   );
 }

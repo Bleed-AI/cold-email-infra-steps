@@ -87,13 +87,17 @@ const T = {
   qualifyAt: 3.9,
   enrichStart: 4.7,
   dmStart: 5.8,
-  dmStagger: 0.2,
-  emailStart: 7.9,
-  emailStagger: 0.18,
-  contactStart: 9.8,
+  dmTrialDur: 0.7,     // per-tool trial time (search → reveal)
+  emailStart: 8.4,
+  emailTrialDur: 0.55, // per-tool trial time
+  contactStart: 12.2,
   contactStagger: 0.22,
 };
-const DURATION = 14.0;
+// Which tool in each waterfall actually hits (rest before miss, rest after stay idle).
+// Show the cascade concept clearly: try, miss, try, miss, HIT.
+const DM_HIT_INDEX = 2;      // Prospeo miss → Surfe miss → MixRank HIT (OpenMart idle)
+const EMAIL_HIT_INDEX = 3;   // Kitt miss → LeadMagic miss → Prospeo miss → Findymail HIT → TryKit verifies
+const DURATION = 15.0;
 const FLOW_PERIOD = 3.6; // ambient particle period (shared → seamless)
 
 type Pt = { x: number; y: number };
@@ -382,7 +386,7 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
             );
           })}
 
-          {/* DECISION-MAKER finder waterfall (multi-method) */}
+          {/* DECISION-MAKER finder waterfall — sequential trial cascade */}
           <WaterfallCard
             x={px(L.dmHub.x, L.w)}
             y={px(L.dmHub.y, L.h)}
@@ -390,12 +394,13 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
             caption="first hit wins"
             tone="accent"
             tools={DM_WATERFALL}
+            hitIndex={DM_HIT_INDEX}
             start={T.dmStart}
-            stagger={T.dmStagger}
+            trialDur={T.dmTrialDur}
             dt={dt}
           />
 
-          {/* EMAIL finder waterfall (multi-provider) */}
+          {/* EMAIL finder waterfall — sequential trial + verify */}
           <WaterfallCard
             x={px(L.emailHub.x, L.w)}
             y={px(L.emailHub.y, L.h)}
@@ -403,8 +408,9 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
             caption="pay-on-success"
             tone="violet"
             tools={EMAIL_WATERFALL}
+            hitIndex={EMAIL_HIT_INDEX}
             start={T.emailStart}
-            stagger={T.emailStagger}
+            trialDur={T.emailTrialDur}
             dt={dt}
           />
 
@@ -481,37 +487,144 @@ function ToolChip({ tool, compact }: { tool: Tool; compact?: boolean }) {
   );
 }
 
-/** A vertical multi-method waterfall card — the "we use many methods" visual. */
+/** Vertical multi-method waterfall — shows a **sequential trial cascade** so
+ *  anyone can see it try tool 1, miss, try tool 2, miss, try tool 3, HIT.
+ *  Tools before hitIndex go: appear → trying → miss.
+ *  Tool at hitIndex goes: appear → trying → hit ✓.
+ *  Tools after hitIndex stay dim/idle (never reached).
+ *  Verify tools (last, marked `verify: true`) fire after the hit, in the
+ *  card's own color, showing the verification pass. */
+type ToolState = "hidden" | "queued" | "trying" | "miss" | "hit" | "verifying" | "verified" | "idle";
+
 function WaterfallCard({
-  x, y, title, caption, tone, tools, start, stagger, dt,
+  x, y, title, caption, tone, tools, hitIndex, start, trialDur, dt,
 }: {
   x: string; y: string; title: string; caption: string;
-  tone: "accent" | "violet"; tools: Tool[]; start: number; stagger: number; dt: number;
+  tone: "accent" | "violet";
+  tools: Tool[];
+  hitIndex: number;
+  start: number;
+  trialDur: number;
+  dt: number;
 }) {
-  const a = clamp01((dt - (start - 0.4)) / 0.5);
-  if (a <= 0) return null;
+  const cardAppear = clamp01((dt - (start - 0.4)) / 0.5);
+  if (cardAppear <= 0) return null;
+
   const accent = tone === "accent" ? "text-accent" : "text-violet-glow";
   const ring = tone === "accent" ? "border-accent/30" : "border-violet-glow/35";
+  const APPEAR_STAGGER = 0.06;
+  const CASCADE_OFFSET = tools.length * APPEAR_STAGGER + 0.2; // let all appear first
+
+  // Compute this tool's state at time dt
+  const stateOf = (i: number, tl: Tool): ToolState => {
+    // A tool with verify:true fires AFTER the hit, at the last position
+    const isVerify = !!tl.verify;
+    const nonVerifyHitIndex = hitIndex;
+
+    const appearAt = start + i * APPEAR_STAGGER - 0.05;
+    if (dt < appearAt) return "hidden";
+
+    if (isVerify) {
+      const vStart = start + CASCADE_OFFSET + (nonVerifyHitIndex + 1) * trialDur;
+      if (dt < vStart) return "queued";
+      if (dt < vStart + trialDur * 0.5) return "verifying";
+      return "verified";
+    }
+
+    // Non-verify tool
+    if (i > nonVerifyHitIndex) return "idle"; // never reached (fallback exists but not needed)
+    const tStart = start + CASCADE_OFFSET + i * trialDur;
+    if (dt < tStart) return "queued";
+    if (dt < tStart + trialDur * 0.5) return "trying";
+    return i < nonVerifyHitIndex ? "miss" : "hit";
+  };
+
   return (
-    <div className="absolute z-20" style={{ left: x, top: y, transform: "translate(-50%,-50%)", opacity: a }}>
-      <div className={`rounded-xl bg-ink-900/85 border ${ring} px-2 py-2 backdrop-blur-sm shadow-[0_8px_24px_rgba(0,0,0,0.4)]`}>
+    <div className="absolute z-20" style={{ left: x, top: y, transform: "translate(-50%,-50%)", opacity: cardAppear }}>
+      <div className={`rounded-xl bg-ink-900/85 border ${ring} px-2 py-2 backdrop-blur-sm shadow-[0_8px_24px_rgba(0,0,0,0.4)] min-w-[168px]`}>
         <div className={`text-[8.5px] font-mono uppercase tracking-[0.14em] ${accent} mb-1.5 px-0.5 text-center`}>{title}</div>
         <div className="flex flex-col gap-1">
           {tools.map((tl, i) => {
-            const ta = clamp01((dt - (start + i * stagger)) / 0.4);
+            const s = stateOf(i, tl);
+            if (s === "hidden") return null;
+
+            // Row-level visual props derived from state
+            const isMiss = s === "miss";
+            const isIdle = s === "idle";
+            const isHit = s === "hit";
+            const isTrying = s === "trying";
+            const isVerifying = s === "verifying";
+            const isVerified = s === "verified";
+            const rowOpacity = isMiss ? 0.55 : isIdle ? 0.4 : 1;
+
+            // Small right-hand-side indicator per state
+            const dot = tone === "accent" ? "255,90,77" : "124,92,255";
+            let indicator: React.ReactNode;
+            if (isTrying || isVerifying) {
+              indicator = (
+                <span className="inline-flex items-center gap-0.5 shrink-0">
+                  <TryDots color={dot} />
+                </span>
+              );
+            } else if (isMiss) {
+              indicator = (
+                <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white/[0.05] border border-white/20 shrink-0">
+                  <svg width="7" height="7" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 6l12 12M6 18L18 6" stroke="rgba(255,255,255,0.55)" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                </span>
+              );
+            } else if (isHit || isVerified) {
+              const glow = tone === "accent" ? "shadow-[0_0_10px_rgba(255,90,77,0.55)]" : "shadow-[0_0_10px_rgba(124,92,255,0.55)]";
+              const bg = tone === "accent" ? "bg-accent/22 border-accent/70" : "bg-violet-glow/22 border-violet-glow/70";
+              const stroke = tone === "accent" ? "#ff5a4d" : "#7c5cff";
+              indicator = (
+                <span className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border shrink-0 ${bg} ${glow}`}>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 13l4 4L19 7" stroke={stroke} strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              );
+            } else if (s === "queued" || isIdle) {
+              indicator = <span className="text-white/25 text-[9px] shrink-0">↓</span>;
+            }
+
+            // Row highlight when trying (subtle border pulse)
+            const rowRing =
+              isTrying || isVerifying
+                ? tone === "accent"
+                  ? "ring-1 ring-accent/50"
+                  : "ring-1 ring-violet-glow/50"
+                : "";
+
+            // Small status label — makes the intent unmissable
+            const label: string | null =
+              isTrying ? "searching…"
+              : isVerifying ? "verifying…"
+              : isMiss ? "not found"
+              : isHit ? "found"
+              : isVerified ? "verified"
+              : null;
+            const labelColor =
+              isTrying || isHit ? "text-accent"
+              : isVerifying || isVerified ? "text-violet-glow"
+              : isMiss ? "text-white/45"
+              : "text-white/30";
+
             return (
-              <div key={tl.label + i} className="flex items-center gap-1.5" style={{ opacity: ta, transform: `translateY(${(1 - ta) * -4}px)` }}>
+              <div
+                key={tl.label + i}
+                className={`flex items-center gap-1.5 rounded-md px-1 py-0.5 transition-all duration-200 ${rowRing}`}
+                style={{ opacity: rowOpacity }}
+              >
                 <LogoTile tool={tl} size={12} />
-                <span className="text-[9.5px] text-white/80 whitespace-nowrap leading-none flex-1">{tl.label}</span>
-                {tl.verify ? (
-                  <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-accent/20 border border-accent/55 shrink-0">
-                    <svg width="7" height="7" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#ff5a4d" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </span>
-                ) : tl.note ? (
-                  <span className={`text-[7.5px] font-mono uppercase tracking-wide ${accent} opacity-70 shrink-0`}>{tl.note}</span>
-                ) : (
-                  <span className="text-white/25 text-[9px] shrink-0">↓</span>
-                )}
+                <span className="text-[9.5px] text-white/85 whitespace-nowrap leading-none">
+                  {tl.label}
+                </span>
+                <span className={`text-[7px] font-mono uppercase tracking-[0.12em] ml-auto shrink-0 ${labelColor}`}>
+                  {label}
+                </span>
+                {indicator}
               </div>
             );
           })}
@@ -519,6 +632,30 @@ function WaterfallCard({
         <div className="text-[7.5px] font-mono uppercase tracking-[0.12em] text-white/35 mt-1.5 text-center">{caption}</div>
       </div>
     </div>
+  );
+}
+
+/** Animated "..." trying dots — three coral/violet dots that pulse in sequence. */
+function TryDots({ color }: { color: string }) {
+  return (
+    <span className="inline-flex items-center gap-[3px]">
+      {[0, 1, 2].map((k) => (
+        <span
+          key={k}
+          className="w-1 h-1 rounded-full"
+          style={{
+            background: `rgb(${color})`,
+            animation: `waterfallDot 0.9s ${k * 0.15}s infinite ease-in-out`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes waterfallDot {
+          0%, 100% { opacity: 0.25; transform: scale(0.75); }
+          50%      { opacity: 1;    transform: scale(1); }
+        }
+      `}</style>
+    </span>
   );
 }
 

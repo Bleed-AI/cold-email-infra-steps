@@ -221,7 +221,7 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 04 · AI copy</>}
+        eyebrow={<><span className="dot" /> Step 06 · AI copy</>}
         headline={<><span className="text-gradient">We write it,</span><br /><span className="text-gradient-accent">personally — at scale.</span></>}
         steps={steps}
         activeCount={activeNarration}
