@@ -11,7 +11,7 @@ import { Callout } from "../lab/engine/Callout";
 //   DATA = pulled straight from the row/enrichment (deterministic facts)
 //   AI   = written per-lead by reasoning over scraped research (incl. subject)
 const DATA_VARS = [
-  { name: "first_name", val: "Emma" },
+  { name: "first_name", val: "Ferrah" },
   { name: "company", val: "Brightwave Labs" },
   { name: "product_name", val: "Brightwave" },
   { name: "employee_count", val: "38" },
@@ -26,17 +26,17 @@ const RESEARCH_FACTS = [
   { src: "LinkedIn", fact: "headcount 38" },
 ];
 const AI_LINE =
-  "you closed your Series A about six months ago, which is usually right when the board starts asking for repeatable pipeline, not just founder-led deals";
+  "you closed your Series A six months back with a team of 38 — and no VP Sales yet, which is usually right when the board starts asking Ferrah for repeatable pipeline, not just founder-led wins";
 
 type Src = "data" | "ai" | null;
 type Tok = { t: string; s?: Src };
 // the assembled email — each token tagged by its source so the merge is visible
 const SUBJECT: Tok[] = [{ t: "who's filling the pipeline at " }, { t: "Brightwave", s: "data" }, { t: "?" }];
 const BODY: Tok[][] = [
-  [{ t: "Emma", s: "data" }, { t: ", " }, { t: AI_LINE, s: "ai" }, { t: "." }],
-  [{ t: "Most teams your size rush to hire an SDR, then spend two quarters and ~$90k watching them ramp. We run the whole outbound motion for you instead: list, copy, sending, replies." }],
-  [{ t: "A Series A team a lot like " }, { t: "Brightwave", s: "data" }, { t: " " }, { t: "booked 11 meetings in their first 30 days", s: "ai" }, { t: ", before they'd have finished onboarding a rep." }],
-  [{ t: "Want me to map out the first 30 days for " }, { t: "Brightwave", s: "data" }, { t: " specifically? No call yet, I can just send it over." }],
+  [{ t: "Ferrah", s: "data" }, { t: ", " }, { t: AI_LINE, s: "ai" }, { t: "." }],
+  [{ t: "Teams at 38 people usually rush to hire an SDR, then spend two quarters and ~$90k watching them ramp. We run the whole outbound motion for you instead — list, copy, sending, replies — so ", s: "ai" }, { t: "Brightwave", s: "data" }, { t: " isn't paying a full salary for a runway to nowhere." }],
+  [{ t: "A Series A team the same size as " }, { t: "Brightwave", s: "data" }, { t: " " }, { t: "booked 11 meetings in their first 30 days with us — before they'd have finished onboarding a single SDR", s: "ai" }, { t: "." }],
+  [{ t: "Want me to map out what the first 30 days would look like for " }, { t: "Brightwave", s: "data" }, { t: " specifically, Ferrah? No call yet — I can just send it over." }],
 ];
 const PS: Tok[] = [{ t: "P.S. " }, { t: "reply rates across these SaaS campaigns run 5 to 14%", s: "ai" }, { t: ", depending on how tight the list is." }];
 
@@ -271,7 +271,7 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
                     ))}
                   </div>
                 </div>
-                <span className="text-[10px] font-mono text-white/30 shrink-0 ml-3">to Emma</span>
+                <span className="text-[10px] font-mono text-white/30 shrink-0 ml-3">to Ferrah</span>
               </div>
               <div className="space-y-2.5 text-[12.5px] leading-relaxed min-h-[150px]">
                 {BODY.map((line, i) => (
