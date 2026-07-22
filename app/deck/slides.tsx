@@ -8,7 +8,8 @@ import CopyScreen from "../screens/CopyScreen";
 import SprintScreen from "../screens/SprintScreen";
 import SendingScreen from "../screens/SendingScreen";
 import SubSequenceScreen from "../screens/SubSequenceScreen";
-import WeeklyWinsScreen from "../screens/WeeklyWinsScreen";
+// WeeklyWinsScreen import kept commented for easy restore of the slide.
+// import WeeklyWinsScreen from "../screens/WeeklyWinsScreen";
 import MonitoringScreen from "../screens/MonitoringScreen";
 
 /**
@@ -27,6 +28,8 @@ export const SLIDES: SlideDef[] = [
   { id: "copy", label: "AI copy", kind: "one-shot-then-loop", Component: makeScreenSlide(CopyScreen) },
   { id: "sending", label: "Live sending", kind: "one-shot-then-loop", Component: makeScreenSlide(SendingScreen) },
   { id: "subseq", label: "Sub-sequence", kind: "one-shot-then-loop", Component: makeScreenSlide(SubSequenceScreen) },
-  { id: "wow", label: "Weekly wins", kind: "one-shot-then-loop", Component: makeScreenSlide(WeeklyWinsScreen) },
+  // TEMP HIDDEN — Weekly Wins slide is kept in code but excluded from the deck.
+  // To bring it back, un-comment the line below.
+  // { id: "wow", label: "Weekly wins", kind: "one-shot-then-loop", Component: makeScreenSlide(WeeklyWinsScreen) },
   { id: "monitoring", label: "Monitoring", kind: "one-shot-then-loop", Component: makeScreenSlide(MonitoringScreen) },
 ];

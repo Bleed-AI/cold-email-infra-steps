@@ -3,6 +3,7 @@
 import {
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useReducer,
 } from "react";
@@ -105,6 +106,35 @@ export function DeckProvider({ children }: { children: React.ReactNode }) {
   const go = useCallback((index: number) => dispatch({ type: "GO", index }), []);
   const next = useCallback(() => dispatch({ type: "NEXT" }), []);
   const prev = useCallback(() => dispatch({ type: "PREV" }), []);
+
+  // -------- URL hash <-> active slide sync -------------------------------
+  // Landing on infra.bleedai.com/#sprint (or any slide id) jumps to that slide.
+  // Navigating within the deck rewrites the hash so the current URL can be
+  // copy-pasted / shared to open exactly the slide you're on.
+  useEffect(() => {
+    const applyHash = () => {
+      if (typeof window === "undefined") return;
+      const hash = window.location.hash.replace(/^#\/?/, "");
+      if (!hash) return;
+      const idx = SLIDES.findIndex((s) => s.id === hash);
+      if (idx >= 0) dispatch({ type: "GO", index: idx });
+    };
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const targetId = SLIDES[state.activeIndex]?.id;
+    if (!targetId) return;
+    const currentHash = window.location.hash.replace(/^#\/?/, "");
+    if (currentHash === targetId) return;
+    // replaceState avoids polluting browser history for every arrow-key press.
+    history.replaceState(null, "", `#${targetId}`);
+  }, [state.activeIndex]);
+  // ----------------------------------------------------------------------
+
   const setPhaseEntered = useCallback(
     () => dispatch({ type: "PHASE_ENTERED" }),
     []
