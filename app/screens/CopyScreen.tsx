@@ -14,31 +14,49 @@ const DATA_VARS = [
   { name: "first_name", val: "Ferrah" },
   { name: "company", val: "Brightwave Labs" },
   { name: "product_name", val: "Brightwave" },
-  { name: "employee_count", val: "38" },
+  { name: "competitor", val: "Zeta Systems" },
 ];
 
 // The showcase beat: AI reads 3 scraped facts and INFERS a tension none of them
 // state outright, then writes the opener from it. This is the "AI writes a line
 // from research" moment the founder wanted captured.
 const RESEARCH_FACTS = [
-  { src: "Crunchbase", fact: "Series A · closed ~6mo ago" },
-  { src: "LinkedIn", fact: "no VP Sales / Head of Growth" },
-  { src: "LinkedIn", fact: "headcount 38" },
+  { src: "Changelog", fact: "3 integrations shipped in June" },
+  { src: "LinkedIn", fact: "SaaS · team of ~40" },
+  { src: "Case study", fact: "Zeta: -47% no-shows / 6wks" },
 ];
 const AI_LINE =
-  "you closed your Series A six months back with a team of 38 — and no VP Sales yet, which is usually right when the board starts asking Ferrah for repeatable pipeline, not just founder-led wins";
+  "shipped 3 integrations in June — that fast-shipping pace usually means the AE calendar is filling up with unqualified demos";
 
 type Src = "data" | "ai" | null;
 type Tok = { t: string; s?: Src };
 // the assembled email — each token tagged by its source so the merge is visible
-const SUBJECT: Tok[] = [{ t: "who's filling the pipeline at " }, { t: "Brightwave", s: "data" }, { t: "?" }];
-const BODY: Tok[][] = [
-  [{ t: "Ferrah", s: "data" }, { t: ", " }, { t: AI_LINE, s: "ai" }, { t: "." }],
-  [{ t: "Teams at 38 people usually rush to hire an SDR, then spend two quarters and ~$90k watching them ramp. We run the whole outbound motion for you instead — list, copy, sending, replies — so ", s: "ai" }, { t: "Brightwave", s: "data" }, { t: " isn't paying a full salary for a runway to nowhere." }],
-  [{ t: "A Series A team the same size as " }, { t: "Brightwave", s: "data" }, { t: " " }, { t: "booked 11 meetings in their first 30 days with us — before they'd have finished onboarding a single SDR", s: "ai" }, { t: "." }],
-  [{ t: "Want me to map out what the first 30 days would look like for " }, { t: "Brightwave", s: "data" }, { t: " specifically, Ferrah? No call yet — I can just send it over." }],
+const SUBJECT: Tok[] = [
+  { t: "filtering demos before the reply — " },
+  { t: "Brightwave", s: "data" },
+  { t: "?" },
 ];
-const PS: Tok[] = [{ t: "P.S. " }, { t: "reply rates across these SaaS campaigns run 5 to 14%", s: "ai" }, { t: ", depending on how tight the list is." }];
+const BODY: Tok[][] = [
+  // Greeting
+  [{ t: "Hey " }, { t: "Ferrah", s: "data" }, { t: "," }],
+  // AI-observed opener (research → observation → comment)
+  [
+    { t: "Saw " },
+    { t: "Brightwave", s: "data" },
+    { t: " " },
+    { t: "shipped 3 integrations in June. Fast team.", s: "ai" },
+  ],
+  // Value pitch (AI-written) with a hard competitor data point in the middle
+  [
+    { t: "Most SaaS teams your size get flooded with unqualified demos from cold outreach and end up wasting AE time. We fixed this for ", s: "ai" },
+    { t: "Zeta Systems", s: "data" },
+    { t: " by filtering leads BEFORE the reply, not after. Demo no-shows dropped 47% in 6 weeks.", s: "ai" },
+  ],
+  // CTA
+  [{ t: "Want the exact setup?" }],
+  // Signature
+  [{ t: "Taha" }],
+];
 
 const VARIANTS = [
   { id: "A", angle: "Save time", note: "skip the SDR ramp" },
@@ -204,7 +222,6 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
 
   const activeNarration = dt < T.typeStart ? 1 : dt < T.emailStart ? 2 : dt < T.variantStart ? 3 : dt < T.followStart ? 4 : 5;
   const bodyShown = BODY.filter((_, i) => dt > T.emailStart + 0.5 + i * T.lineStagger).length;
-  const psShown = dt > T.emailStart + 0.5 + BODY.length * T.lineStagger;
   const showVariants = dt > T.variantStart;
   const showFollow = dt > T.followStart;
 
@@ -281,11 +298,6 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
                     ))}
                   </p>
                 ))}
-                <p style={{ opacity: psShown ? 1 : 0, transition: "opacity .4s" }} className="text-[11.5px] text-white/45 pt-1">
-                  {PS.map((tok, j) => (
-                    <span key={j} className={tok.s ? spanCls(tok.s) : "text-white/45"}>{tok.t}</span>
-                  ))}
-                </p>
               </div>
               <div className="mt-3 pt-3 border-t border-white/8 flex items-center gap-2 text-[10px] font-mono text-white/35">
                 <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-accent/80" /> data</span>
