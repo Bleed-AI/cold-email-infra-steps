@@ -189,3 +189,11 @@ html.lenis body {
   width: 0;
   height: 0;
 }
+
+/* Multi-channel: gentle staggered "firing" pulse for the Live-sending channel
+   strip. Ambient CSS motion (not React/canvas), so it loops after the build
+   completes without per-frame re-renders. */
+@keyframes chan-firing {
+  0%, 100% { opacity: 0.45; transform: translateY(0); }
+  50%      { opacity: 1;    transform: translateY(-1px); }
+}

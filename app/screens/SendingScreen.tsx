@@ -261,7 +261,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
               </div>
               <div className="space-y-1.5 text-[12px] font-mono text-white/65">
                 <Row label="Campaign" value="Q3 · Founders" />
-                <Row label="Channels" value="Email·LinkedIn·Call·SMS" accent />
+                <ChannelStrip live={campaignLive} />
                 <Row label="Mailboxes" value={`${mailboxesLive} / 21`} />
                 <Row label="Status" value={campaignLive ? "Sending" : "Starting…"} accent={campaignLive} />
               </div>
@@ -366,6 +366,64 @@ function Row({ label, value, accent = false }: { label: string; value: string; a
     <div className="flex items-center justify-between gap-3">
       <span className="text-white/40 shrink-0">{label}</span>
       <span className={`truncate ${accent ? "text-accent" : "text-white"}`}>{value}</span>
+    </div>
+  );
+}
+
+/**
+ * The multi-channel strip inside the Instantly card — added on alongside the
+ * existing email rows. Email + LinkedIn + Call + SMS tiles gently pulse in a
+ * stagger while the campaign is live (ambient CSS motion, so it keeps looping
+ * after the scrub build completes). Nothing about the existing sending motion
+ * changes — this only adds the channel row.
+ */
+function ChannelStrip({ live }: { live: boolean }) {
+  const tile = "inline-flex items-center justify-center w-5 h-5 rounded";
+  const items: { key: string; node: React.ReactNode }[] = [
+    {
+      key: "email",
+      node: (
+        <span className={`${tile} bg-white/[0.06] border border-white/12 text-white/70`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="1.8" /><path d="M3 8l9 6 9-6" stroke="currentColor" strokeWidth="1.8" /></svg>
+        </span>
+      ),
+    },
+    {
+      key: "linkedin",
+      node: (
+        <span className={`${tile} bg-white shadow-[0_1px_4px_rgba(0,0,0,0.4)]`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logos/linkedin.png" alt="LinkedIn" width={12} height={12} style={{ width: 12, height: 12 }} className="object-contain" />
+        </span>
+      ),
+    },
+    {
+      key: "call",
+      node: (
+        <span className={`${tile} bg-white/[0.06] border border-white/12 text-white/70`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6.5 4h3l1.2 4-2 1.2a11 11 0 0 0 5.1 5.1l1.2-2 4 1.2v3a1.5 1.5 0 0 1-1.6 1.5A15.5 15.5 0 0 1 5 6.6 1.5 1.5 0 0 1 6.5 4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
+        </span>
+      ),
+    },
+    {
+      key: "sms",
+      node: (
+        <span className={`${tile} bg-white/[0.06] border border-white/12 text-white/70`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M8 10h8M8 12.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+        </span>
+      ),
+    },
+  ];
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-white/40 shrink-0">Channels</span>
+      <div className="flex items-center gap-1">
+        {items.map((it, i) => (
+          <span key={it.key} style={{ animation: live ? `chan-firing 1.8s ease-in-out ${i * 0.22}s infinite` : "none", opacity: live ? undefined : 0.4 }}>
+            {it.node}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

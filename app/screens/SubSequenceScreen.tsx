@@ -30,6 +30,7 @@ import { NarrationRail, type NarrationStep } from "../lab/engine/NarrationRail";
  */
 
 type StageType = "cold" | "reply" | "enrich" | "sub" | "meeting";
+type Channel = "linkedin" | "sms";
 type Stage = {
   key: string;
   type: StageType;
@@ -37,6 +38,7 @@ type Stage = {
   sub: string;
   day: string;
   appearAt: number;
+  channel?: Channel;
 };
 
 const STAGES: Stage[] = [
@@ -44,8 +46,8 @@ const STAGES: Stage[] = [
   { key: "e2",      type: "cold",    label: "Follow-up",         sub: "part of the sequence",       day: "Day 3",  appearAt: 1.4 },
   { key: "reply",   type: "reply",   label: "Positive reply",    sub: "\"What did you have in mind?\"", day: "Day 5",  appearAt: 2.7 },
   { key: "enrich",  type: "enrich",  label: "Auto-enrich",       sub: "round 2 fires",              day: "+2 min", appearAt: 4.4 },
-  { key: "s1",      type: "sub",     label: "LinkedIn touch",     sub: "grounded in fresh data",     day: "Day 6",  appearAt: 5.8 },
-  { key: "s2",      type: "sub",     label: "SMS nudge",          sub: "short, to the mobile",       day: "Day 9",  appearAt: 6.8 },
+  { key: "s1",      type: "sub",     label: "LinkedIn touch",     sub: "grounded in fresh data",     day: "Day 6",  appearAt: 5.8, channel: "linkedin" },
+  { key: "s2",      type: "sub",     label: "SMS nudge",          sub: "short, to the mobile",       day: "Day 9",  appearAt: 6.8, channel: "sms" },
   { key: "meeting", type: "meeting", label: "Meeting booked",     sub: "Friday · 2:00 PM",           day: "Day 12", appearAt: 8.0 },
 ];
 const N = STAGES.length;
@@ -517,7 +519,7 @@ function StageCard({
 
         {/* Icon */}
         <div className="flex items-center justify-center mb-1">
-          <StageIcon type={stage.type} />
+          <StageIcon type={stage.type} channel={stage.channel} />
         </div>
 
         {/* Label */}
@@ -541,9 +543,30 @@ function StageCard({
   );
 }
 
-function StageIcon({ type }: { type: StageType }) {
+function StageIcon({ type, channel }: { type: StageType; channel?: Channel }) {
   const size = 16;
   const wrap = "inline-flex items-center justify-center w-6 h-6 rounded-md";
+  // Channel-specific touches keep the violet "sub" tile so they read as part of
+  // the sub-sequence, but carry their own glyph (added on — email/reply/meeting
+  // icons below are unchanged).
+  if (channel === "linkedin") {
+    return (
+      <span className={`${wrap} bg-white shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.4)]`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logos/linkedin.png" alt="LinkedIn" width={12} height={12} style={{ width: 12, height: 12 }} className="object-contain" />
+      </span>
+    );
+  }
+  if (channel === "sms") {
+    return (
+      <span className={`${wrap} bg-violet-glow/15 border border-violet-glow/50 text-violet-glow`}>
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M8 10h8M8 12.5h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      </span>
+    );
+  }
   if (type === "cold") {
     return (
       <span className={`${wrap} bg-white/[0.08] border border-white/15 text-white/70`}>
