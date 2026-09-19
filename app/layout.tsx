@@ -16,9 +16,9 @@ const display = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Cold Email Infrastructure — From Request to Revenue-Ready",
+  title: "Multi-Channel Outreach — From Request to Revenue-Ready",
   description:
-    "We build, configure, warm up, and deliver complete cold email systems.",
+    "We build, warm up, and run coordinated outreach across email, LinkedIn, calls, and SMS — end to end.",
 };
 
 export default function RootLayout({

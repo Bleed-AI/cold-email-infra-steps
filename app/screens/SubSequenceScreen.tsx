@@ -44,8 +44,8 @@ const STAGES: Stage[] = [
   { key: "e2",      type: "cold",    label: "Follow-up",         sub: "part of the sequence",       day: "Day 3",  appearAt: 1.4 },
   { key: "reply",   type: "reply",   label: "Positive reply",    sub: "\"What did you have in mind?\"", day: "Day 5",  appearAt: 2.7 },
   { key: "enrich",  type: "enrich",  label: "Auto-enrich",       sub: "round 2 fires",              day: "+2 min", appearAt: 4.4 },
-  { key: "s1",      type: "sub",     label: "Sub-seq #1",         sub: "grounded in fresh data",     day: "Day 6",  appearAt: 5.8 },
-  { key: "s2",      type: "sub",     label: "Sub-seq #2",         sub: "different angle",            day: "Day 9",  appearAt: 6.8 },
+  { key: "s1",      type: "sub",     label: "LinkedIn touch",     sub: "grounded in fresh data",     day: "Day 6",  appearAt: 5.8 },
+  { key: "s2",      type: "sub",     label: "SMS nudge",          sub: "short, to the mobile",       day: "Day 9",  appearAt: 6.8 },
   { key: "meeting", type: "meeting", label: "Meeting booked",     sub: "Friday · 2:00 PM",           day: "Day 12", appearAt: 8.0 },
 ];
 const N = STAGES.length;
@@ -96,7 +96,7 @@ export default function SubSequenceScreen({ businessName, deckHandleRef, onDone 
       { n: "01", title: "Cold sequence sends first", detail: <p>{businessName}&apos;s campaign goes out — an initial cold email, plus one follow-up. Standard so far; every agency does this part.</p> },
       { n: "02", title: "A prospect replies", detail: <p>Someone from the list writes back with real interest. This is the moment where <span className="text-white/80">most agencies stop the automation</span> and hand it off — hope for the best.</p> },
       { n: "03", title: "We fire enrichment again — right then", detail: <p>The reply triggers a second round of enrichment: their <span className="text-white/80">latest LinkedIn posts, news, role changes</span> — data that wasn&apos;t there when we first emailed.</p> },
-      { n: "04", title: "A short, tailored sub-sequence sends", detail: <p>2–3 follow-ups, each written around something we just learned. Not templates — a real thread that keeps the momentum moving toward a meeting.</p> },
+      { n: "04", title: "A short, tailored sub-sequence sends", detail: <p>2–3 cross-channel follow-ups — a LinkedIn touch, an SMS nudge — each written around something we just learned. Not templates: a real thread that keeps the momentum moving toward a meeting.</p> },
       { n: "05", title: "Reply → booked meeting", detail: <p>Because the sub-sequence keeps the conversation warm, replies convert to calls — not drift into a &quot;maybe later.&quot; That&apos;s the piece other agencies miss.</p> },
     ],
     [businessName]

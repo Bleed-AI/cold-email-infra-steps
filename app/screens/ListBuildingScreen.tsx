@@ -129,7 +129,7 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
       { n: "02", title: "Qualify before we spend", detail: <p>We keep only right-fit companies for {businessName} — size, industry and buying signals — and drop the rest before paying to enrich a single one.</p> },
       { n: "03", title: "Enrich every keeper", detail: <p>Clay routes 100+ providers, Prospeo FIRMO returns 35 firmographic fields in one call, and a smart-scrape cascade (Serper → parallel.ai) reads each site. OpenAI turns it into per-lead variables.</p> },
       { n: "04", title: "Decision-makers, multiple methods", detail: <p>2–3 real buyers per company. Prospeo finds most in-house; on a miss a backup chain fires — <span className="text-white/80">Surfe → MixRank → OpenMart</span> — first hit wins.</p> },
-      { n: "05", title: "Emails through a verified waterfall", detail: <p>Each email runs a finder waterfall — <span className="text-white/80">Kitt → LeadMagic → Prospeo → Findymail</span> — then a strict <span className="text-white/80">TryKit</span> verify before it&apos;s allowed in. Bounce rates stay near zero.</p> },
+      { n: "05", title: "Emails, LinkedIn & phone — verified", detail: <p>Each email runs a finder waterfall — <span className="text-white/80">Kitt → LeadMagic → Prospeo → Findymail</span> — then a strict <span className="text-white/80">TryKit</span> verify. We capture the <span className="text-white/80">LinkedIn profile and direct / mobile number</span> too, so the same buyer can be reached on every channel. Bounce rates stay near zero.</p> },
     ],
     [businessName]
   );
@@ -317,7 +317,7 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
           {/* stage header labels with animated counts */}
           <Callout x={px(L.companies[0].x, L.w)} y={px(L.h * 0.235, L.h)} anchor="center" tone="accent" label="Qualified" value={qualified.toLocaleString()} appear={seg(dt, T.coStart, T.coStart + 0.8)} reduced={reduce} />
           <Callout x={px(L.dmHub.x + L.w * 0.006, L.w)} y={px(L.h * 0.075, L.h)} anchor="center" tone="accent" label="Decision-makers" value={dmsCount.toLocaleString()} appear={seg(dt, T.dmStart, T.dmStart + 0.8)} reduced={reduce} />
-          <Callout x={px(L.contacts[0].x, L.w)} y={px(L.h * 0.085, L.h)} anchor="center" tone="violet" label="Verified emails" value={emailsCount.toLocaleString()} appear={seg(dt, T.contactStart, T.contactStart + 0.8)} reduced={reduce} />
+          <Callout x={px(L.contacts[0].x, L.w)} y={px(L.h * 0.085, L.h)} anchor="center" tone="violet" label="Verified contacts" value={emailsCount.toLocaleString()} appear={seg(dt, T.contactStart, T.contactStart + 0.8)} reduced={reduce} />
 
           {/* SOURCES cloud (the vast network) */}
           {SOURCES.map((s, i) => {

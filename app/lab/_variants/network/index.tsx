@@ -71,7 +71,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
         detail: (
           <p>
             <span className="text-white/80">{mainDomain}</span> is {businessName}&apos;s real website. We
-            never send cold email from it — so its reputation is never at risk.
+            never run cold outreach from it — so its reputation is never at risk.
           </p>
         ),
       },
@@ -113,7 +113,8 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
         detail: (
           <p>
             Each sending domain redirects to <span className="text-white/80">{mainDomain}</span>, so a
-            curious prospect who clicks the domain lands on your real site. Whole setup: ~1 day.
+            curious prospect who clicks the domain lands on your real site. This email layer is the
+            backbone — LinkedIn, calls and SMS then run on the same leads. Whole setup: ~1 day.
           </p>
         ),
       },
@@ -352,7 +353,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
           <>
             <span className="text-gradient">How We build Your</span>
             <br />
-            <span className="text-gradient-accent">sending infrastructure.</span>
+            <span className="text-gradient-accent">outreach infrastructure.</span>
           </>
         }
         steps={steps}

@@ -58,10 +58,10 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Campaign goes live", detail: <p>After warm-up, {businessName}&apos;s first campaign launches in <span className="text-white/80">Instantly</span> across all 21 mailboxes.</p> },
-      { n: "02", title: "Sent at a safe cadence", detail: <p>Around {PER_INBOX_PER_DAY} emails per inbox per day, spaced out — never a blast — so providers keep trusting your domains.</p> },
-      { n: "03", title: "Landing in the inbox", detail: <p>Because the domains are warmed and authenticated, messages land in the primary inbox, not spam.</p> },
-      { n: "04", title: "Replies route back to you", detail: <p>Positive replies come straight back to <span className="text-white/80">you@{mainDomain}</span>, and sending auto-pauses on reply so no prospect is ever double-messaged.</p> },
+      { n: "01", title: "Campaigns go live", detail: <p>After warm-up, {businessName}&apos;s first email campaign launches in <span className="text-white/80">Instantly</span> across all 21 mailboxes — while the same leads get <span className="text-white/80">LinkedIn touches, calls and SMS</span> in parallel.</p> },
+      { n: "02", title: "Sent at a safe cadence", detail: <p>Around {PER_INBOX_PER_DAY} emails per inbox per day, spaced out — never a blast — and every channel paced to stay natural, so providers keep trusting your domains.</p> },
+      { n: "03", title: "Landing in the inbox", detail: <p>Because the domains are warmed and authenticated, messages land in the primary inbox, not spam — and each channel reaches the buyer where they actually respond.</p> },
+      { n: "04", title: "Replies route back to you", detail: <p>Positive replies — from any channel — come straight back to <span className="text-white/80">you@{mainDomain}</span>, and outreach auto-pauses on reply so no prospect is ever double-messaged.</p> },
     ],
     [businessName, mainDomain]
   );
@@ -218,8 +218,8 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 07 · Live sending</>}
-        headline={<><span className="text-gradient">We go live</span><br /><span className="text-gradient-accent">and the replies come in.</span></>}
+        eyebrow={<><span className="dot" /> Step 07 · Live outreach</>}
+        headline={<><span className="text-gradient">We go live</span><br /><span className="text-gradient-accent">across every channel.</span></>}
         steps={steps}
         activeCount={activeNarration}
         reduced={reduce}
@@ -229,7 +229,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
       <div className="absolute top-9 right-9 z-30 flex items-center gap-2 chip">
         <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_10px_#ff5a4d] animate-pulse" />
         <span className="font-display text-[20px] text-white leading-none tabular-nums">{sent.toLocaleString()}</span>
-        <span className="text-white/45">emails sent</span>
+        <span className="text-white/45">touches sent</span>
       </div>
 
       {L && (
@@ -253,7 +253,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
                 </span>
                 <div className="leading-tight min-w-0">
                   <div className="font-mono text-[13px] text-white truncate">Instantly</div>
-                  <div className="text-[10px] text-white/45 truncate">{businessName} · cold outreach</div>
+                  <div className="text-[10px] text-white/45 truncate">{businessName} · multi-channel</div>
                 </div>
                 <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent/15 border border-accent/40 px-2.5 py-1 text-[10px] font-mono text-accent transition-opacity" style={{ opacity: campaignLive ? 1 : 0 }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> LIVE
@@ -261,6 +261,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
               </div>
               <div className="space-y-1.5 text-[12px] font-mono text-white/65">
                 <Row label="Campaign" value="Q3 · Founders" />
+                <Row label="Channels" value="Email·LinkedIn·Call·SMS" accent />
                 <Row label="Mailboxes" value={`${mailboxesLive} / 21`} />
                 <Row label="Status" value={campaignLive ? "Sending" : "Starting…"} accent={campaignLive} />
               </div>
