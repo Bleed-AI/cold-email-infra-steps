@@ -66,7 +66,7 @@ const VARIANTS = [
 const FOLLOWUPS = [
   { tag: "Email", text: "Day 0 · inferred-tension opener (above)" },
   { tag: "LinkedIn", text: "Day 2 · connect + soft, on-topic touch" },
-  { tag: "Email", text: "Day 5 · new angle, fresh thread" },
+  { tag: "Mailer", text: "Day 5 · a direct-mail piece that stands out" },
 ];
 
 const T = {
@@ -103,9 +103,9 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
     () => [
       { n: "01", title: "Two kinds of variables", detail: <p>Some come straight from the data (name, company, headcount). Others are written by AI from each lead&apos;s research — even the subject line.</p> },
       { n: "02", title: "AI writes the line from research", detail: <p>It reads the scraped facts — Series A timing, no sales hire yet, headcount — and infers the tension <em>none of them state outright</em>, then writes the opener from it. Not a slotted token: a sentence composed for one person.</p> },
-      { n: "03", title: "Merge both into the copy", detail: <p>Data variables and AI variables slot into a proven template, so every message — email or LinkedIn — reads like it was written by hand for that one person.</p> },
+      { n: "03", title: "Merge both into the copy", detail: <p>Data variables and AI variables slot into a proven template, so every message — email, LinkedIn or direct mail — reads like it was written by hand for that one person.</p> },
       { n: "04", title: "A/B/C value angles", detail: <p>The same offer runs through three value lenses — save time, make money, save money — so the best-performing message wins on real replies.</p> },
-      { n: "05", title: "Cross-channel follow-ups", detail: <p>Each angle becomes a short sequence over the next week — email, then a LinkedIn touch — every touch adding something new, so {businessName} stays top-of-mind without nagging.</p> },
+      { n: "05", title: "Cross-channel follow-ups", detail: <p>Each angle becomes a short sequence over the next week — email, a LinkedIn touch, then a direct-mail piece — every touch adding something new, so {businessName} stays top-of-mind without nagging.</p> },
     ],
     [businessName]
   );

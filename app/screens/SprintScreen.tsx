@@ -74,7 +74,7 @@ export default function SprintScreen({ businessName, deckHandleRef, onDone }: Sc
     () => [
       { n: "01", title: "Split into 6–8 best-fit segments", detail: <p>We break {businessName}&apos;s list into a deliberate mix — <span className="text-white/80">verticals</span> (industry), <span className="text-white/80">roles</span> (persona), and <span className="text-white/80">buying signals</span> (active intent) — so each campaign speaks to one type of buyer.</p> },
       { n: "02", title: "Signals catch buyers early", detail: <p>Recently funded, a BDR hire, a Product Hunt launch — these are companies actively spending right now. Signal-based segments consistently reply first.</p> },
-      { n: "03", title: "One campaign per segment", detail: <p>Every segment gets its own angle, offer and channel mix — email and LinkedIn — never one message duct-taped across the whole list.</p> },
+      { n: "03", title: "One campaign per segment", detail: <p>Every segment gets its own angle, offer and channel mix — email, LinkedIn and direct mail — never one message duct-taped across the whole list.</p> },
       { n: "04", title: "All 6–8 send in parallel", detail: <p>Every experiment runs at the same time. No favorites — real replies pick the winners.</p> },
       { n: "05", title: "Winners scale · losers rest", detail: <p>Top 2–3 campaigns double their volume. Underperformers pause and get rewritten. Every week we compound what&apos;s working.</p> },
     ],
