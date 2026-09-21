@@ -58,10 +58,10 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Campaigns go live", detail: <p>After warm-up, {businessName}&apos;s first email campaign launches in <span className="text-white/80">Instantly</span> across all 21 mailboxes — while the same leads get <span className="text-white/80">LinkedIn touches, calls and SMS</span> in parallel.</p> },
-      { n: "02", title: "Sent at a safe cadence", detail: <p>Around {PER_INBOX_PER_DAY} emails per inbox per day, spaced out — never a blast — and every channel paced to stay natural, so providers keep trusting your domains.</p> },
-      { n: "03", title: "Landing in the inbox", detail: <p>Because the domains are warmed and authenticated, messages land in the primary inbox, not spam — and each channel reaches the buyer where they actually respond.</p> },
-      { n: "04", title: "Replies route back to you", detail: <p>Positive replies — from any channel — come straight back to <span className="text-white/80">you@{mainDomain}</span>, and outreach auto-pauses on reply so no prospect is ever double-messaged.</p> },
+      { n: "01", title: "Campaigns go live", detail: <p>After warm-up, {businessName}&apos;s first email campaign launches in <span className="text-white/80">Instantly</span> across all 21 mailboxes — while the same leads get <span className="text-white/80">LinkedIn touches</span> in parallel.</p> },
+      { n: "02", title: "Sent at a safe cadence", detail: <p>Around {PER_INBOX_PER_DAY} emails per inbox per day, spaced out — never a blast — and LinkedIn paced to stay natural too, so providers keep trusting your domains.</p> },
+      { n: "03", title: "Landing in the inbox", detail: <p>Because the domains are warmed and authenticated, messages land in the primary inbox, not spam — and LinkedIn reaches the buyer where they already spend their day.</p> },
+      { n: "04", title: "Replies land in your CRM", detail: <p>Positive replies come straight back to <span className="text-white/80">you@{mainDomain}</span> and drop into <span className="text-white/80">your CRM</span> for call &amp; SMS follow-up. Outreach auto-pauses on reply, so no prospect is ever double-messaged.</p> },
     ],
     [businessName, mainDomain]
   );
@@ -219,7 +219,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
 
       <NarrationRail
         eyebrow={<><span className="dot" /> Step 07 · Live outreach</>}
-        headline={<><span className="text-gradient">We go live</span><br /><span className="text-gradient-accent">across every channel.</span></>}
+        headline={<><span className="text-gradient">We go live</span><br /><span className="text-gradient-accent">on email and LinkedIn.</span></>}
         steps={steps}
         activeCount={activeNarration}
         reduced={reduce}
@@ -253,7 +253,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
                 </span>
                 <div className="leading-tight min-w-0">
                   <div className="font-mono text-[13px] text-white truncate">Instantly</div>
-                  <div className="text-[10px] text-white/45 truncate">{businessName} · multi-channel</div>
+                  <div className="text-[10px] text-white/45 truncate">{businessName} · email + LinkedIn</div>
                 </div>
                 <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent/15 border border-accent/40 px-2.5 py-1 text-[10px] font-mono text-accent transition-opacity" style={{ opacity: campaignLive ? 1 : 0 }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> LIVE
@@ -394,22 +394,6 @@ function ChannelStrip({ live }: { live: boolean }) {
         <span className={`${tile} bg-white shadow-[0_1px_4px_rgba(0,0,0,0.4)]`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logos/linkedin.png" alt="LinkedIn" width={12} height={12} style={{ width: 12, height: 12 }} className="object-contain" />
-        </span>
-      ),
-    },
-    {
-      key: "call",
-      node: (
-        <span className={`${tile} bg-white/[0.06] border border-white/12 text-white/70`}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6.5 4h3l1.2 4-2 1.2a11 11 0 0 0 5.1 5.1l1.2-2 4 1.2v3a1.5 1.5 0 0 1-1.6 1.5A15.5 15.5 0 0 1 5 6.6 1.5 1.5 0 0 1 6.5 4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
-        </span>
-      ),
-    },
-    {
-      key: "sms",
-      node: (
-        <span className={`${tile} bg-white/[0.06] border border-white/12 text-white/70`}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M8 10h8M8 12.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
         </span>
       ),
     },

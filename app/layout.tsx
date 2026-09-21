@@ -18,7 +18,7 @@ const display = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Multi-Channel Outreach — From Request to Revenue-Ready",
   description:
-    "We build, warm up, and run coordinated outreach across email, LinkedIn, calls, and SMS — end to end.",
+    "We build, warm up, and run coordinated outreach on email and LinkedIn — with call and SMS follow-up handled in your CRM.",
 };
 
 export default function RootLayout({

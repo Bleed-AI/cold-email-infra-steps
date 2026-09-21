@@ -89,8 +89,9 @@ export default function VisitorIntro() {
 
             <p className="mt-3 text-sm text-white/65 leading-relaxed">
               Nothing&apos;s running right now — this is a walkthrough of how
-              we build, send, and optimize outreach across email, LinkedIn,
-              calls, and SMS for businesses like yours. Look around.
+              we build, send, and optimize outreach on email and LinkedIn —
+              with call and SMS follow-up in your CRM — for businesses like
+              yours. Look around.
             </p>
 
             <button

@@ -102,7 +102,7 @@ export default function WarmupScreen({ businessName, slug, deckHandleRef, onDone
       { n: "01", title: "Warm-up switches on", detail: <p>Every mailbox is enrolled in a warm-up network the moment it&apos;s created — before a single prospect sees it.</p> },
       { n: "02", title: "14 days of natural conversation", detail: <p>The inboxes send and reply to each other like real people, day after day, gradually ramping volume.</p> },
       { n: "03", title: "Reputation builds", detail: <p>Providers learn these are real senders — opens, replies and zero spam complaints push the <span className="text-white/80">trust score</span> up.</p> },
-      { n: "04", title: "Ready to launch", detail: <p>After ~14 days the inboxes have a healthy reputation and are ready to send to <span className="text-white/80">{businessName}</span>&apos;s prospects. LinkedIn, calls and SMS need no warm-up — they&apos;re ready to run alongside from day one.</p> },
+      { n: "04", title: "Ready to launch", detail: <p>After ~14 days the inboxes have a healthy reputation and are ready to send to <span className="text-white/80">{businessName}</span>&apos;s prospects. LinkedIn needs no warm-up — it runs alongside from day one.</p> },
     ],
     [businessName]
   );

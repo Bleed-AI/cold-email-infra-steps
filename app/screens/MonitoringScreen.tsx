@@ -80,10 +80,10 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Every channel watched in real time", detail: <p>Every send, open, reply and bounce is tracked across every channel — email, LinkedIn, calls and SMS — the moment a metric drifts, the system flags it.</p> },
+      { n: "01", title: "Every channel watched in real time", detail: <p>Every send, open, reply and bounce is tracked across email and LinkedIn — plus call &amp; SMS follow-up in your CRM — the moment a metric drifts, the system flags it.</p> },
       { n: "02", title: "Per-mailbox health, 24/7", detail: <p>Every one of {businessName}&apos;s mailboxes is scored on its own reputation. If one dips, it&apos;s pulled and rested before it can drag the others down.</p> },
       { n: "03", title: "Domain reputation & blacklists", detail: <p>Each sending domain is checked against blacklists and reputation feeds continuously — a problem domain is caught early, not after a whole campaign burns.</p> },
-      { n: "04", title: "Auto-heal · quiet, weak inboxes rest", detail: <p>Weak inboxes rest, warm replacements rotate in, campaigns keep sending. The infrastructure looks after itself so {businessName}&apos;s outreach stays evergreen across every channel.</p> },
+      { n: "04", title: "Auto-heal · quiet, weak inboxes rest", detail: <p>Weak inboxes rest, warm replacements rotate in, campaigns keep sending. The infrastructure looks after itself so {businessName}&apos;s email and LinkedIn outreach stays evergreen.</p> },
     ],
     [businessName]
   );

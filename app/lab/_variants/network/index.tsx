@@ -114,7 +114,8 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
           <p>
             Each sending domain redirects to <span className="text-white/80">{mainDomain}</span>, so a
             curious prospect who clicks the domain lands on your real site. This email layer is the
-            backbone — LinkedIn, calls and SMS then run on the same leads. Whole setup: ~1 day.
+            backbone — LinkedIn runs alongside, and call &amp; SMS follow-up happen in your CRM. Whole
+            setup: ~1 day.
           </p>
         ),
       },
