@@ -10,49 +10,50 @@ import {
   easeOut,
   clamp01,
   lerp,
+  phase,
 } from "../lab/engine/useScrubClock";
 import { NarrationRail, type NarrationStep } from "../lab/engine/NarrationRail";
 
 /**
- * LinkedIn outreach, the full picture, for clients who don't understand what
- * "LinkedIn outreach" means. Three ideas are on screen, not just implied:
- *   1. WHY LinkedIn, email can't reach everyone (~1 in 5 have no findable
- *      email); LinkedIn reaches them. The reach figure at the top.
- *   2. What it LOOKS like, a real LinkedIn campaign: a list of lead profile
- *      cards whose status climbs Invite sent to Pending to Connected to
- *      Replied (the Aimfox-style panel).
- *   3. It's SAFE and you APPROVE, a real rep, within LinkedIn's limits, you
- *      sign off on every message. The trust chips.
+ * LinkedIn outreach — the full picture, for clients who don't understand what
+ * "LinkedIn outreach" means. Three ideas the earlier version missed are now on
+ * screen, not just implied:
+ *   1. WHY LinkedIn — email can't reach everyone (~1 in 5 have no findable
+ *      email); LinkedIn is a separate pipe that reaches them. → the reach bar.
+ *   2. It's SAFE — real profiles, well under LinkedIn's limits. → trust chip.
+ *   3. Real IDENTITY + your APPROVAL — a real rep ("works with you"), never
+ *      pretending to be you, and you sign off on every message. → trust chips.
+ * Same buyer we email, second channel. Built on the shared scrub-clock engine.
  */
 
-const LADDER = ["Queued", "Invite sent", "Pending", "Connected", "Replied"] as const;
-
-type Lead = { name: string; title: string; company: string; initials: string; target: number; tone: "accent" | "violet" };
-const LEADS: Lead[] = [
-  { name: "Ferrah Lang", title: "VP Sales",       company: "Brightwave", initials: "FL", target: 4, tone: "accent" },
-  { name: "Marcus Cole", title: "Head of Growth", company: "Nimbus",     initials: "MC", target: 3, tone: "violet" },
-  { name: "Priya Shah",  title: "Founder",        company: "Larkfield",  initials: "PS", target: 2, tone: "accent" },
-  { name: "Dan Ortiz",   title: "RevOps Lead",    company: "Vaneo",      initials: "DO", target: 1, tone: "violet" },
+type StepKind = "list" | "connect" | "message" | "reply" | "chat";
+type Step = { key: string; label: string; sub: string; kind: StepKind };
+const STEPS: Step[] = [
+  { key: "list",     label: "Ranked buyer list",  sub: "in priority order",        kind: "list" },
+  { key: "connect",  label: "Connection request", sub: "hand-written, per person", kind: "connect" },
+  { key: "followup", label: "Follow-up sequence", sub: "spaced over the week",     kind: "message" },
+  { key: "human",    label: "Reply → human",      sub: "automation stops",         kind: "reply" },
+  { key: "convo",    label: "Conversation",       sub: "~1 in 4 accept",           kind: "chat" },
 ];
-const NL = LEADS.length;
+const N = STEPS.length;
 
 const T = {
   reachIn: [0.3, 1.1] as [number, number],
   reachLine: [1.4, 2.1] as [number, number],
-  cardsStart: 2.4,
-  cardStagger: 0.5,
-  stageDur: 0.8,
-  chipsStart: 7.4,
+  nodeStart: 2.4,
+  nodeStagger: 1.05,
+  nodeDur: 0.55,
+  flowStart: 7.2,
+  chipsStart: 7.6,
   chipStagger: 0.55,
 };
-const DURATION = 10.0;
+const DURATION = 10.2;
 const P_PERIOD = 3.0;
 
-const cardAppear = (i: number) => T.cardsStart + i * T.cardStagger;
-const stageOf = (i: number, dt: number) =>
-  Math.min(LEADS[i].target, Math.max(0, Math.floor((dt - cardAppear(i)) / T.stageDur)));
+type Pt = { x: number; y: number };
+type Layout = { w: number; h: number; nodes: Pt[]; centerX: number; railRight: number };
 
-type Layout = { w: number; h: number; centerX: number; railRight: number };
+const nodeAppear = (i: number) => T.nodeStart + i * T.nodeStagger;
 
 export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: ScreenProps) {
   const reduce = !!useReducedMotion();
@@ -81,27 +82,77 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
     if (!root) return;
     const w = root.clientWidth;
     const h = root.clientHeight;
+    // Mirror NarrationRail's sizing (w-[34%] max-w-[440px] min-w-[300px]).
     const railRight = Math.max(300, Math.min(w * 0.34, 440));
-    const centerX = railRight + (w - railRight) / 2;
-    layoutRef.current = { w, h, centerX, railRight };
+    const canvasLeft = railRight + 40;
+    const canvasRight = w - 32;
+    const cw = canvasRight - canvasLeft;
+    const nodeY = h * 0.52;
+    const nodes: Pt[] = Array.from({ length: N }, (_, i) => ({
+      x: canvasLeft + cw * (0.12 + 0.76 * (i / (N - 1))),
+      y: nodeY,
+    }));
+    const centerX = (nodes[0].x + nodes[N - 1].x) / 2;
+    layoutRef.current = { w, h, nodes, centerX, railRight };
   }, []);
 
-  const drawCanvas = useCallback((t: number) => {
-    const ctx = ctxRef.current;
-    const L = layoutRef.current;
-    if (!ctx || !L) return;
-    const { w, h, centerX } = L;
-    ctx.clearRect(0, 0, w, h);
-    // soft breathing glow behind the campaign panel (ambient, loops via sin)
-    const cy = h * 0.53;
-    const breathe = 1 + 0.08 * Math.sin((t / P_PERIOD) * Math.PI * 2);
-    const r = 240 * breathe;
-    const g = ctx.createRadialGradient(centerX, cy, 0, centerX, cy, r);
-    g.addColorStop(0, "rgba(255,90,77,0.06)");
-    g.addColorStop(1, "rgba(255,90,77,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(centerX - r, cy - r, r * 2, r * 2);
+  const builtX = useCallback((t: number, L: Layout) => {
+    const start = nodeAppear(0);
+    const end = nodeAppear(N - 1) + T.nodeDur;
+    const f = clamp01((t - start) / (end - start));
+    return lerp(L.nodes[0].x, L.nodes[N - 1].x, easeOut(f));
   }, []);
+
+  const drawCanvas = useCallback(
+    (t: number) => {
+      const ctx = ctxRef.current;
+      const L = layoutRef.current;
+      if (!ctx || !L) return;
+      const { w, h, nodes } = L;
+      ctx.clearRect(0, 0, w, h);
+      const y = nodes[0].y;
+      const x0 = nodes[0].x;
+      const endX = builtX(t, L);
+
+      // connector line (builds as the nodes appear)
+      if (endX > x0 + 1) {
+        ctx.beginPath();
+        ctx.moveTo(x0, y);
+        ctx.lineTo(endX, y);
+        ctx.strokeStyle = "rgba(255,90,77,0.22)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+
+      // node glow pulses (breathe with the packet period → seamless loop)
+      nodes.forEach((nd, i) => {
+        const ev = easeOut(clamp01((t - nodeAppear(i)) / T.nodeDur));
+        if (ev <= 0) return;
+        const breathe = 1 + 0.12 * Math.sin((t / P_PERIOD) * Math.PI * 2 + i * 0.7);
+        const r = 26 * breathe;
+        const g = ctx.createRadialGradient(nd.x, nd.y, 0, nd.x, nd.y, r);
+        g.addColorStop(0, `rgba(255,90,77,${0.14 * ev})`);
+        g.addColorStop(1, "rgba(255,90,77,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(nd.x - r, nd.y - r, r * 2, r * 2);
+      });
+
+      // flowing packets left→right once the line is built (loops via phase)
+      if (t >= T.flowStart) {
+        const pk = 3;
+        for (let k = 0; k < pk; k++) {
+          const f = phase(t, P_PERIOD, k / pk);
+          const px = lerp(x0, nodes[N - 1].x, f);
+          const fade = Math.sin(Math.PI * f);
+          ctx.beginPath();
+          ctx.arc(px, y, 2.0, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,150,135,${0.5 + 0.45 * fade})`;
+          ctx.fill();
+        }
+      }
+    },
+    [builtX]
+  );
 
   const onFrame = useCallback(
     (t: number) => {
@@ -151,12 +202,16 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
   });
   useDeckHandle(controls, deckHandleRef);
 
-  const connectedCount = LEADS.reduce((c, _, i) => c + (stageOf(i, dt) >= 3 ? 1 : 0), 0);
+  const nodesPresent = (() => {
+    let c = 0;
+    for (let i = 0; i < N; i++) if (dt >= nodeAppear(i)) c++;
+    return c;
+  })();
   const activeNarration =
-    dt >= 7.4 ? 6 :
-    dt >= 5.6 ? 5 :
-    dt >= 4.2 ? 4 :
-    dt >= 3.2 ? 3 :
+    dt >= 6.6 ? 6 :
+    dt >= 5.55 ? 5 :
+    dt >= 4.5 ? 4 :
+    dt >= 3.45 ? 3 :
     dt >= 2.4 ? 2 : 1;
   const reachEv = clamp01(seg(dt, T.reachIn[0], T.reachIn[1]));
 
@@ -172,7 +227,10 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
   return (
     <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-ink-950">
       <div className="absolute inset-0 bg-grid-fine opacity-[0.16]" />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(65% 60% at 56% 50%, rgba(255,90,77,0.06), transparent 62%)" }} />
+      <div
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(65% 60% at 56% 50%, rgba(255,90,77,0.07), transparent 62%)" }}
+      />
       <div className="noise" />
       <canvas ref={canvasRef} className="absolute inset-0" />
 
@@ -186,138 +244,123 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 
       {/* top-right status */}
       <div className="absolute top-9 right-9 z-30 flex items-center gap-2 chip">
-        <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_10px_#ff5a4d] animate-pulse" />
-        <span className="text-[12px] font-mono text-accent uppercase tracking-[0.14em]">campaign · live</span>
+        <span className="font-display text-[20px] text-white leading-none tabular-nums">{nodesPresent}</span>
+        <span className="text-white/45">/ {N} steps</span>
       </div>
 
       {L && (
         <>
-          {/* WHY LinkedIn, animated reach figure: 10 buyers, 2 (amber) have no email */}
+          {/* WHY LinkedIn — a prominent animated figure: 10 buyers, 2 (amber)
+              have no email, LinkedIn reaches them. */}
           <div
             className="absolute z-20"
             style={{
               left: px(L.centerX, L.w),
-              top: px(L.h * 0.155, L.h),
+              top: px(L.h * 0.185, L.h),
               transform: `translate(-50%, ${(1 - reachEv) * -12}px) scale(${lerp(0.93, 1, reachEv)})`,
               opacity: reachEv,
-              width: "min(470px, 46vw)",
+              width: "min(500px, 48vw)",
             }}
           >
-            <div className="rounded-2xl glass px-5 py-4 shadow-[0_16px_50px_rgba(0,0,0,0.5)]">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="rounded-2xl glass px-6 py-5 shadow-[0_18px_55px_rgba(0,0,0,0.5)]">
+              <div className="flex items-center gap-2 mb-4">
                 <span className="dot" />
-                <span className="text-[10.5px] font-mono uppercase tracking-[0.18em] text-white/55">
+                <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-white/55">
                   Why LinkedIn · email can&apos;t reach everyone
                 </span>
               </div>
-              <div className="flex items-center justify-center gap-1.5 mb-3">
+
+              {/* 10 buyers — the last 2 (amber) have no email */}
+              <div className="flex items-center justify-center gap-2 mb-4">
                 {Array.from({ length: 10 }).map((_, i) => {
                   const da = clamp01((dt - (T.reachIn[0] + i * 0.07)) / 0.4);
                   const miss = i >= 8;
                   return (
                     <span
                       key={i}
-                      className="inline-flex items-center justify-center w-7 h-8 rounded-md border"
+                      className="inline-flex items-center justify-center w-8 h-9 rounded-lg border"
                       style={{
                         opacity: da,
                         transform: `translateY(${(1 - da) * 8}px)`,
                         background: miss ? "rgba(245,158,11,0.16)" : "rgba(255,255,255,0.05)",
                         borderColor: miss ? "rgba(245,158,11,0.6)" : "rgba(255,255,255,0.12)",
                         color: miss ? "#f59e0b" : "rgba(255,255,255,0.5)",
-                        boxShadow: miss ? "0 0 12px rgba(245,158,11,0.35)" : "none",
+                        boxShadow: miss ? "0 0 14px rgba(245,158,11,0.35)" : "none",
                         animation: miss && dt >= T.reachLine[0] ? "chan-firing 1.9s ease-in-out infinite" : "none",
                       }}
                     >
-                      <PersonIcon size={15} />
+                      <PersonIcon size={16} />
                     </span>
                   );
                 })}
               </div>
+
+              {/* takeaway */}
               <div
                 className="flex items-center justify-center gap-2 text-center"
-                style={{ opacity: clamp01(seg(dt, T.reachLine[0], T.reachLine[1])) }}
+                style={{
+                  opacity: clamp01(seg(dt, T.reachLine[0], T.reachLine[1])),
+                  transform: `translateY(${(1 - clamp01(seg(dt, T.reachLine[0], T.reachLine[1]))) * 6}px)`,
+                }}
               >
-                <span className="font-display text-[20px] leading-none" style={{ color: "#f59e0b" }}>1 in 5</span>
-                <span className="text-white/60 text-[13px]">has no email,</span>
-                <span className="font-display text-[16px] leading-none text-accent">LinkedIn reaches them</span>
+                <span className="font-display text-[22px] leading-none" style={{ color: "#f59e0b" }}>1 in 5</span>
+                <span className="text-white/60 text-[13.5px]">has no email,</span>
+                <span className="font-display text-[18px] leading-none text-accent">LinkedIn reaches them</span>
               </div>
             </div>
           </div>
 
-          {/* the campaign, a list of lead profile cards with climbing status */}
-          <div
-            className="absolute z-20"
-            style={{
-              left: px(L.centerX, L.w),
-              top: px(L.h * 0.55, L.h),
-              transform: "translate(-50%,-50%)",
-              width: "min(540px, 52vw)",
-            }}
-          >
-            <div className="rounded-2xl glass px-4 py-3.5 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-              {/* panel header */}
-              <div className="flex items-center gap-2.5 mb-3 pb-3 border-b border-white/8">
-                <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logos/linkedin.png" alt="LinkedIn" width={16} height={16} style={{ width: 16, height: 16 }} className="object-contain" />
+          {/* the 5 LinkedIn-outreach steps — icon centered ON the line, label below */}
+          {STEPS.map((s, i) => {
+            const a = clamp01((dt - nodeAppear(i)) / T.nodeDur);
+            if (a <= 0) return null;
+            const nd = L.nodes[i];
+            return (
+              <div key={s.key}>
+                <span
+                  className="absolute z-20 inline-flex items-center justify-center w-11 h-11 rounded-xl bg-ink-900/90 border border-accent/40 backdrop-blur-sm shadow-[0_8px_22px_rgba(0,0,0,0.4)]"
+                  style={{
+                    left: px(nd.x, L.w),
+                    top: px(nd.y, L.h),
+                    transform: "translate(-50%,-50%)",
+                    opacity: a,
+                  }}
+                >
+                  <StepIcon kind={s.kind} />
                 </span>
-                <div className="leading-tight">
-                  <div className="text-[12.5px] text-white font-medium">LinkedIn campaign</div>
-                  <div className="text-[10px] text-white/45">from a real profile · not a bot</div>
+                <div
+                  className="absolute z-20 text-center"
+                  style={{
+                    left: px(nd.x, L.w),
+                    top: px(nd.y + 40, L.h),
+                    width: 132,
+                    transform: `translate(-50%, ${(1 - a) * 6}px)`,
+                    opacity: a,
+                  }}
+                >
+                  <div className="text-[11px] font-mono text-white leading-tight">{s.label}</div>
+                  <div className="text-[9.5px] text-white/45 leading-tight mt-0.5">{s.sub}</div>
                 </div>
-                <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent/12 border border-accent/40 px-2.5 py-1 text-[10px] font-mono text-accent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                  {connectedCount} connected
-                </span>
               </div>
+            );
+          })}
 
-              {/* lead rows */}
-              <div className="space-y-1">
-                {LEADS.map((ld, i) => {
-                  const a = clamp01((dt - cardAppear(i)) / 0.5);
-                  const st = stageOf(i, dt);
-                  return (
-                    <div
-                      key={ld.name}
-                      className="flex items-center gap-3 rounded-lg px-2 py-2"
-                      style={{ opacity: a, transform: `translateY(${(1 - a) * 8}px)` }}
-                    >
-                      <span
-                        className="inline-flex items-center justify-center w-9 h-9 rounded-full shrink-0 font-display text-[13px] border"
-                        style={{
-                          background: ld.tone === "violet" ? "rgba(124,92,255,0.16)" : "rgba(255,90,77,0.16)",
-                          borderColor: ld.tone === "violet" ? "rgba(124,92,255,0.5)" : "rgba(255,90,77,0.5)",
-                          color: ld.tone === "violet" ? "#a78fff" : "#ff8a7d",
-                        }}
-                      >
-                        {ld.initials}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[12.5px] text-white leading-tight truncate">{ld.name}</div>
-                        <div className="text-[10.5px] text-white/45 leading-tight truncate">{ld.title} · {ld.company}</div>
-                      </div>
-                      <StatusPill stage={st} />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* trust row: safe · real rep · you approve */}
+          {/* trust row — safe · real rep · you approve */}
           <div
             className="absolute z-20 flex items-center justify-center gap-2.5 flex-wrap"
             style={{
               left: px(L.centerX, L.w),
-              top: px(L.h * 0.87, L.h),
+              top: px(L.h * 0.83, L.h),
               transform: "translate(-50%,-50%)",
-              width: "min(560px, 54vw)",
+              width: "min(560px, 52vw)",
             }}
           >
             {CHIPS.map((c, i) => {
               const a = clamp01((dt - (T.chipsStart + i * T.chipStagger)) / 0.5);
               if (a <= 0) return <span key={c.key} />;
-              const toneCls = c.tone === "violet" ? "border-violet-glow/45 text-violet-glow" : "border-accent/45 text-accent";
+              const toneCls = c.tone === "violet"
+                ? "border-violet-glow/45 text-violet-glow"
+                : "border-accent/45 text-accent";
               return (
                 <span
                   key={c.key}
@@ -348,23 +391,49 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
   );
 }
 
-function StatusPill({ stage }: { stage: number }) {
-  const label = LADDER[stage];
-  // 0 Queued · 1 Invite sent · 2 Pending(amber) · 3 Connected(accent) · 4 Replied(filled)
-  let cls = "bg-white/[0.05] border-white/12 text-white/45";
-  let pulse = false;
-  if (stage === 1) cls = "bg-white/[0.07] border-white/20 text-white/70";
-  else if (stage === 2) cls = "border text-[#f59e0b]";
-  else if (stage === 3) cls = "bg-accent/15 border-accent/50 text-accent";
-  else if (stage === 4) { cls = "bg-accent border-accent text-ink-950 font-semibold"; pulse = true; }
-  const amber = stage === 2 ? { background: "rgba(245,158,11,0.15)", borderColor: "rgba(245,158,11,0.5)" } : undefined;
+function StepIcon({ kind }: { kind: StepKind }) {
+  const size = 20;
+  const stroke = { stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  if (kind === "list") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-accent">
+        <path d="M9 6h11M9 12h11M9 18h11" {...stroke} />
+        <circle cx="4.5" cy="6" r="1.3" fill="currentColor" />
+        <circle cx="4.5" cy="12" r="1.3" fill="currentColor" />
+        <circle cx="4.5" cy="18" r="1.3" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (kind === "chat") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-accent">
+        <path d="M4 5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H8l-4 3V6a1 1 0 0 1 1-1z" {...stroke} />
+        <path d="M18 9h1a1 1 0 0 1 1 1v7l-3-2h-6" {...stroke} />
+      </svg>
+    );
+  }
+  if (kind === "connect") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-accent">
+        <circle cx="9" cy="8" r="3.2" {...stroke} />
+        <path d="M3.5 19a5.5 5.5 0 0 1 11 0" {...stroke} />
+        <path d="M18 7v6M15 10h6" {...stroke} />
+      </svg>
+    );
+  }
+  if (kind === "message") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-accent">
+        <path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" {...stroke} />
+        <path d="M8 10h8M8 12.5h5" {...stroke} />
+      </svg>
+    );
+  }
+  // reply
   return (
-    <span
-      className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-1 text-[9.5px] font-mono uppercase tracking-[0.08em] ${cls} ${pulse ? "animate-pulse" : ""}`}
-      style={amber}
-    >
-      {label}
-    </span>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-accent">
+      <path d="M9 17l-4-4 4-4M5 13h11a4 4 0 0 0 4-4V6" {...stroke} />
+    </svg>
   );
 }
 
