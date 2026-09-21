@@ -27,8 +27,8 @@ export const SLIDES: SlideDef[] = [
   { id: "signals", label: "Signals", kind: "one-shot-then-loop", Component: makeScreenSlide(SignalsScreen) },
   { id: "sprint", label: "Sprint", kind: "one-shot-then-loop", Component: makeScreenSlide(SprintScreen) },
   { id: "copy", label: "AI copy", kind: "one-shot-then-loop", Component: makeScreenSlide(CopyScreen) },
+  { id: "sending", label: "Live sending", kind: "one-shot-then-loop", Component: makeScreenSlide(SendingScreen) },
   { id: "linkedin", label: "LinkedIn outreach", kind: "one-shot-then-loop", Component: makeScreenSlide(LinkedInScreen) },
-  { id: "sending", label: "Live outreach", kind: "one-shot-then-loop", Component: makeScreenSlide(SendingScreen) },
   { id: "subseq", label: "Sub-sequence", kind: "one-shot-then-loop", Component: makeScreenSlide(SubSequenceScreen) },
   // TEMP HIDDEN — Weekly Wins slide is kept in code but excluded from the deck.
   // To bring it back, un-comment the line below.

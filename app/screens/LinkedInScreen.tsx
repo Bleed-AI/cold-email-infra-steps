@@ -235,7 +235,7 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 07 · LinkedIn outreach · done for you</>}
+        eyebrow={<><span className="dot" /> Step 08 · LinkedIn outreach · done for you</>}
         headline={<><span className="text-gradient">LinkedIn outreach,</span><br /><span className="text-gradient-accent">done for you.</span></>}
         steps={steps}
         activeCount={activeNarration}
