@@ -24,14 +24,14 @@ import { Callout } from "../lab/engine/Callout";
  * channel. Built on the shared scrub-clock engine like every other screen.
  */
 
-type StepKind = "linkedin" | "view" | "connect" | "message" | "reply";
+type StepKind = "list" | "connect" | "message" | "reply" | "chat";
 type Step = { key: string; label: string; sub: string; kind: StepKind };
 const STEPS: Step[] = [
-  { key: "find",    label: "Find the profile",   sub: "the same buyer we email", kind: "linkedin" },
-  { key: "warm",    label: "Visit + like a post", sub: "show up first, warmly",  kind: "view" },
-  { key: "connect", label: "Connection request", sub: "short, personal note",    kind: "connect" },
-  { key: "message", label: "Message on accept",  sub: "soft, on-topic",          kind: "message" },
-  { key: "reply",   label: "Reply → your CRM",   sub: "same pipeline as email",  kind: "reply" },
+  { key: "list",     label: "Ranked buyer list",  sub: "in priority order",       kind: "list" },
+  { key: "connect",  label: "Connection request", sub: "hand-written, per person", kind: "connect" },
+  { key: "followup", label: "Follow-up sequence", sub: "spaced over the week",    kind: "message" },
+  { key: "human",    label: "Reply → human",      sub: "automation stops",        kind: "reply" },
+  { key: "convo",    label: "Conversation",       sub: "~1 in 4 accept",          kind: "chat" },
 ];
 const N = STEPS.length;
 
@@ -62,11 +62,11 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "It's the same buyer — on LinkedIn", detail: <p>The exact decision-maker we email also gets reached on LinkedIn. <span className="text-white/80">One person, two places</span> — not a random new list.</p> },
-      { n: "02", title: "We warm up first — a visit & a like", detail: <p>Before any message, we view their profile and engage a recent post. So when our note arrives, <span className="text-white/80">our name already looks familiar</span> — not a stranger.</p> },
-      { n: "03", title: "A personal connection request", detail: <p>Not a generic &quot;I&apos;d like to connect.&quot; A short note written from their research — the <span className="text-white/80">same personalization as the email</span>.</p> },
-      { n: "04", title: "They accept → a real conversation", detail: <p>Once connected, a soft, on-topic message — no hard pitch. It reads human because it is, and it earns a reply.</p> },
-      { n: "05", title: "Email + LinkedIn = more replies", detail: <p>The same buyer sees a helpful email <em>and</em> a familiar face on LinkedIn. Two touchpoints beat one — and every reply routes to the <span className="text-white/80">same pipeline ({businessName}&apos;s CRM)</span>.</p> },
+      { n: "01", title: "We find the right people", detail: <p>We build a ranked list of {businessName}&apos;s ideal buyers and put them in <span className="text-white/80">priority order</span> — best-fit first, so effort goes where it counts.</p> },
+      { n: "02", title: "A personal connection request", detail: <p>Every note is written by hand for that person, based on their <span className="text-white/80">actual company</span>. No pitch, no copy-paste — just a real reason to connect.</p> },
+      { n: "03", title: "We follow up the right way", detail: <p>Once they accept, a short sequence of messages <span className="text-white/80">spaced over the week</span>. The moment someone replies, the automation stops and a <span className="text-white/80">human takes over</span>.</p> },
+      { n: "04", title: "We keep your account safe", detail: <p>It all runs from a <span className="text-white/80">real profile — not a bot</span>, staying well inside LinkedIn&apos;s limits, so your account is never flagged.</p> },
+      { n: "05", title: "You approve before anything sends", detail: <p>You see the exact messages first — nothing goes out without your sign-off. Expect around <span className="text-white/80">1 in 4</span> to accept, and a healthy share to reply and start a conversation.</p> },
     ],
     [businessName]
   );
@@ -227,8 +227,8 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 07 · LinkedIn outreach · explained</>}
-        headline={<><span className="text-gradient">What LinkedIn outreach</span><br /><span className="text-gradient-accent">actually is.</span></>}
+        eyebrow={<><span className="dot" /> Step 07 · LinkedIn outreach · from a real profile</>}
+        headline={<><span className="text-gradient">LinkedIn outreach,</span><br /><span className="text-gradient-accent">done for you.</span></>}
         steps={steps}
         activeCount={activeNarration}
         reduced={reduce}
@@ -302,9 +302,9 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
             x={px((L.nodes[0].x + L.nodes[N - 1].x) / 2, L.w)}
             y={px(L.h * 0.82, L.h)}
             anchor="center"
-            tone="accent"
-            label="Same buyer · second channel"
-            sub="email + LinkedIn, working together"
+            tone="violet"
+            label="You approve every message"
+            sub="nothing sends without your sign-off"
             appear={seg(dt, T.flowStart - 0.4, T.flowStart + 0.4)}
             reduced={reduce}
             className="[&_*]:!normal-case"
@@ -330,19 +330,21 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 function StepIcon({ kind }: { kind: StepKind }) {
   const size = 20;
   const stroke = { stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  if (kind === "linkedin") {
-    return (
-      <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-white shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logos/linkedin.png" alt="LinkedIn" width={16} height={16} style={{ width: 16, height: 16 }} className="object-contain" />
-      </span>
-    );
-  }
-  if (kind === "view") {
+  if (kind === "list") {
     return (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-accent">
-        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z" {...stroke} />
-        <circle cx="12" cy="12" r="2.6" {...stroke} />
+        <path d="M9 6h11M9 12h11M9 18h11" {...stroke} />
+        <circle cx="4.5" cy="6" r="1.3" fill="currentColor" />
+        <circle cx="4.5" cy="12" r="1.3" fill="currentColor" />
+        <circle cx="4.5" cy="18" r="1.3" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (kind === "chat") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-accent">
+        <path d="M4 5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H8l-4 3V6a1 1 0 0 1 1-1z" {...stroke} />
+        <path d="M18 9h1a1 1 0 0 1 1 1v7l-3-2h-6" {...stroke} />
       </svg>
     );
   }
