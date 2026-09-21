@@ -38,15 +38,16 @@ const STEPS: Step[] = [
 const N = STEPS.length;
 
 const T = {
-  reachIn: [0.3, 1.3] as [number, number],
-  nodeStart: 1.9,
-  nodeStagger: 1.1,
+  reachIn: [0.3, 1.1] as [number, number],
+  reachLine: [1.4, 2.1] as [number, number],
+  nodeStart: 2.4,
+  nodeStagger: 1.05,
   nodeDur: 0.55,
-  flowStart: 7.0,
-  chipsStart: 7.3,
+  flowStart: 7.2,
+  chipsStart: 7.6,
   chipStagger: 0.55,
 };
-const DURATION = 9.8;
+const DURATION = 10.2;
 const P_PERIOD = 3.0;
 
 type Pt = { x: number; y: number };
@@ -207,11 +208,11 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
     return c;
   })();
   const activeNarration =
-    dt >= 6.3 ? 6 :
-    dt >= 5.2 ? 5 :
-    dt >= 4.1 ? 4 :
-    dt >= 3.0 ? 3 :
-    dt >= 1.9 ? 2 : 1;
+    dt >= 6.6 ? 6 :
+    dt >= 5.55 ? 5 :
+    dt >= 4.5 ? 4 :
+    dt >= 3.45 ? 3 :
+    dt >= 2.4 ? 2 : 1;
   const reachEv = clamp01(seg(dt, T.reachIn[0], T.reachIn[1]));
 
   const L = layoutRef.current;
@@ -249,34 +250,63 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 
       {L && (
         <>
-          {/* WHY LinkedIn — reach bar: email misses ~1 in 5, LinkedIn covers all */}
+          {/* WHY LinkedIn — a prominent animated figure: 10 buyers, 2 (amber)
+              have no email, LinkedIn reaches them. */}
           <div
             className="absolute z-20"
             style={{
               left: px(L.centerX, L.w),
-              top: px(L.h * 0.16, L.h),
-              transform: `translate(-50%, ${(1 - reachEv) * -6}px)`,
+              top: px(L.h * 0.185, L.h),
+              transform: `translate(-50%, ${(1 - reachEv) * -12}px) scale(${lerp(0.93, 1, reachEv)})`,
               opacity: reachEv,
-              width: 372,
-              maxWidth: "42vw",
+              width: "min(500px, 48vw)",
             }}
           >
-            <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-white/50 mb-1.5 text-center">
-              Why LinkedIn · email can&apos;t reach everyone
-            </div>
-            <div className="flex h-3.5 rounded overflow-hidden border border-white/12">
-              <div className="flex items-center justify-start pl-2" style={{ width: "82%", background: "rgba(255,255,255,0.12)" }}>
-                <span className="text-[8.5px] font-mono text-white/60 whitespace-nowrap">email reaches ~4 in 5</span>
+            <div className="rounded-2xl glass px-6 py-5 shadow-[0_18px_55px_rgba(0,0,0,0.5)]">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="dot" />
+                <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-white/55">
+                  Why LinkedIn · email can&apos;t reach everyone
+                </span>
               </div>
-              <div className="flex items-center justify-center" style={{ width: "18%", background: "#f59e0b" }}>
-                <span className="text-[8.5px] font-mono text-ink-950 font-semibold whitespace-nowrap">1 in 5</span>
+
+              {/* 10 buyers — the last 2 (amber) have no email */}
+              <div className="flex items-center justify-center gap-2 mb-4">
+                {Array.from({ length: 10 }).map((_, i) => {
+                  const da = clamp01((dt - (T.reachIn[0] + i * 0.07)) / 0.4);
+                  const miss = i >= 8;
+                  return (
+                    <span
+                      key={i}
+                      className="inline-flex items-center justify-center w-8 h-9 rounded-lg border"
+                      style={{
+                        opacity: da,
+                        transform: `translateY(${(1 - da) * 8}px)`,
+                        background: miss ? "rgba(245,158,11,0.16)" : "rgba(255,255,255,0.05)",
+                        borderColor: miss ? "rgba(245,158,11,0.6)" : "rgba(255,255,255,0.12)",
+                        color: miss ? "#f59e0b" : "rgba(255,255,255,0.5)",
+                        boxShadow: miss ? "0 0 14px rgba(245,158,11,0.35)" : "none",
+                        animation: miss && dt >= T.reachLine[0] ? "chan-firing 1.9s ease-in-out infinite" : "none",
+                      }}
+                    >
+                      <PersonIcon size={16} />
+                    </span>
+                  );
+                })}
               </div>
-            </div>
-            <div className="text-[9.5px] text-center mt-1.5">
-              <span className="text-white/45">the </span>
-              <span style={{ color: "#f59e0b" }}>amber slice</span>
-              <span className="text-white/45"> has no email — </span>
-              <span className="text-accent">LinkedIn reaches them</span>
+
+              {/* takeaway */}
+              <div
+                className="flex items-center justify-center gap-2 text-center"
+                style={{
+                  opacity: clamp01(seg(dt, T.reachLine[0], T.reachLine[1])),
+                  transform: `translateY(${(1 - clamp01(seg(dt, T.reachLine[0], T.reachLine[1]))) * 6}px)`,
+                }}
+              >
+                <span className="font-display text-[22px] leading-none" style={{ color: "#f59e0b" }}>1 in 5</span>
+                <span className="text-white/60 text-[13.5px]">has no email —</span>
+                <span className="font-display text-[18px] leading-none text-accent">LinkedIn reaches them</span>
+              </div>
             </div>
           </div>
 
@@ -413,6 +443,6 @@ function CheckIcon() {
 function ShieldIcon() {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>;
 }
-function PersonIcon() {
-  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.8" /><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+function PersonIcon({ size = 12 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden><circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.8" /><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
 }
