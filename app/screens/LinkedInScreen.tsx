@@ -76,11 +76,13 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
     if (!root) return;
     const w = root.clientWidth;
     const h = root.clientHeight;
-    const railRight = Math.min(w * 0.34, 440);
-    const canvasLeft = railRight + 24;
+    // Mirror NarrationRail's own sizing (w-[34%] max-w-[440px] min-w-[300px])
+    // so the flow never slides under the rail on narrower viewports.
+    const railRight = Math.max(300, Math.min(w * 0.34, 440));
+    const canvasLeft = railRight + 40;
     const canvasRight = w - 32;
     const cw = canvasRight - canvasLeft;
-    const nodeY = h * 0.54;
+    const nodeY = h * 0.5;
     const nodes: Pt[] = Array.from({ length: N }, (_, i) => ({
       x: canvasLeft + cw * (0.12 + 0.76 * (i / (N - 1))),
       y: nodeY,
@@ -242,13 +244,13 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 
       {L && (
         <>
-          {/* the buyer — same person we email */}
+          {/* the buyer — the right person, targeted */}
           <div
             className="absolute z-20"
             style={{
               left: px(L.profile.x, L.w),
               top: px(L.profile.y, L.h),
-              transform: "translate(-50%,-50%)",
+              transform: "translate(0,-50%)",
               opacity: clamp01(seg(dt, T.profileIn[0], T.profileIn[1])),
             }}
           >
@@ -267,28 +269,36 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
             </div>
           </div>
 
-          {/* the 5 LinkedIn-outreach steps */}
+          {/* the 5 LinkedIn-outreach steps — icon centered ON the connector line,
+              label positioned below so nothing sits over the line */}
           {STEPS.map((s, i) => {
             const a = clamp01((dt - nodeAppear(i)) / T.nodeDur);
             if (a <= 0) return null;
             const nd = L.nodes[i];
             return (
-              <div
-                key={s.key}
-                className="absolute z-20 flex flex-col items-center"
-                style={{
-                  left: px(nd.x, L.w),
-                  top: px(nd.y, L.h),
-                  transform: "translate(-50%,-50%)",
-                  opacity: a,
-                }}
-              >
-                <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-ink-900/85 border border-accent/40 backdrop-blur-sm shadow-[0_8px_22px_rgba(0,0,0,0.4)]">
+              <div key={s.key}>
+                {/* icon badge — centered exactly on the node point */}
+                <span
+                  className="absolute z-20 inline-flex items-center justify-center w-11 h-11 rounded-xl bg-ink-900/90 border border-accent/40 backdrop-blur-sm shadow-[0_8px_22px_rgba(0,0,0,0.4)]"
+                  style={{
+                    left: px(nd.x, L.w),
+                    top: px(nd.y, L.h),
+                    transform: "translate(-50%,-50%)",
+                    opacity: a,
+                  }}
+                >
                   <StepIcon kind={s.kind} />
                 </span>
+                {/* label — below the icon */}
                 <div
-                  className="mt-2 w-[128px] text-center"
-                  style={{ transform: `translateY(${(1 - a) * 6}px)` }}
+                  className="absolute z-20 text-center"
+                  style={{
+                    left: px(nd.x, L.w),
+                    top: px(nd.y + 40, L.h),
+                    width: 132,
+                    transform: `translate(-50%, ${(1 - a) * 6}px)`,
+                    opacity: a,
+                  }}
                 >
                   <div className="text-[11px] font-mono text-white leading-tight">{s.label}</div>
                   <div className="text-[9.5px] text-white/45 leading-tight mt-0.5">{s.sub}</div>
