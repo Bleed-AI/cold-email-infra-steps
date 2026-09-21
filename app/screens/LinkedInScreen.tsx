@@ -13,40 +13,44 @@ import {
   phase,
 } from "../lab/engine/useScrubClock";
 import { NarrationRail, type NarrationStep } from "../lab/engine/NarrationRail";
-import { Callout } from "../lab/engine/Callout";
 
 /**
- * LinkedIn outreach — EXPLAINER slide. Many clients don't understand what
- * "LinkedIn outreach" actually means, so this screen walks the same buyer we
- * email through the LinkedIn touch, step by step: find the profile → warm up
- * with a visit + like → a personal connection request → a soft message on
- * accept → the reply routes to the same pipeline (→ CRM). Same person, second
- * channel. Built on the shared scrub-clock engine like every other screen.
+ * LinkedIn outreach — the full picture, for clients who don't understand what
+ * "LinkedIn outreach" means. Three ideas the earlier version missed are now on
+ * screen, not just implied:
+ *   1. WHY LinkedIn — email can't reach everyone (~1 in 5 have no findable
+ *      email); LinkedIn is a separate pipe that reaches them. → the reach bar.
+ *   2. It's SAFE — real profiles, well under LinkedIn's limits. → trust chip.
+ *   3. Real IDENTITY + your APPROVAL — a real rep ("works with you"), never
+ *      pretending to be you, and you sign off on every message. → trust chips.
+ * Same buyer we email, second channel. Built on the shared scrub-clock engine.
  */
 
 type StepKind = "list" | "connect" | "message" | "reply" | "chat";
 type Step = { key: string; label: string; sub: string; kind: StepKind };
 const STEPS: Step[] = [
-  { key: "list",     label: "Ranked buyer list",  sub: "in priority order",       kind: "list" },
+  { key: "list",     label: "Ranked buyer list",  sub: "in priority order",        kind: "list" },
   { key: "connect",  label: "Connection request", sub: "hand-written, per person", kind: "connect" },
-  { key: "followup", label: "Follow-up sequence", sub: "spaced over the week",    kind: "message" },
-  { key: "human",    label: "Reply → human",      sub: "automation stops",        kind: "reply" },
-  { key: "convo",    label: "Conversation",       sub: "~1 in 4 accept",          kind: "chat" },
+  { key: "followup", label: "Follow-up sequence", sub: "spaced over the week",     kind: "message" },
+  { key: "human",    label: "Reply → human",      sub: "automation stops",         kind: "reply" },
+  { key: "convo",    label: "Conversation",       sub: "~1 in 4 accept",           kind: "chat" },
 ];
 const N = STEPS.length;
 
 const T = {
-  profileIn: [0.2, 1.0] as [number, number],
-  nodeStart: 1.1,
-  nodeStagger: 1.35,
-  nodeDur: 0.6,
-  flowStart: 7.4,
+  reachIn: [0.3, 1.3] as [number, number],
+  nodeStart: 1.9,
+  nodeStagger: 1.1,
+  nodeDur: 0.55,
+  flowStart: 7.0,
+  chipsStart: 7.3,
+  chipStagger: 0.55,
 };
-const DURATION = 11.6;
+const DURATION = 9.8;
 const P_PERIOD = 3.0;
 
 type Pt = { x: number; y: number };
-type Layout = { w: number; h: number; nodes: Pt[]; profile: Pt; railRight: number };
+type Layout = { w: number; h: number; nodes: Pt[]; centerX: number; railRight: number };
 
 const nodeAppear = (i: number) => T.nodeStart + i * T.nodeStagger;
 
@@ -62,11 +66,12 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "We find the right people", detail: <p>We build a ranked list of {businessName}&apos;s ideal buyers and put them in <span className="text-white/80">priority order</span> — best-fit first, so effort goes where it counts.</p> },
-      { n: "02", title: "A personal connection request", detail: <p>Every note is written by hand for that person, based on their <span className="text-white/80">actual company</span>. No pitch, no copy-paste — just a real reason to connect.</p> },
-      { n: "03", title: "We follow up the right way", detail: <p>Once they accept, a short sequence of messages <span className="text-white/80">spaced over the week</span>. The moment someone replies, the automation stops and a <span className="text-white/80">human takes over</span>.</p> },
-      { n: "04", title: "We keep your account safe", detail: <p>It all runs from a <span className="text-white/80">real profile — not a bot</span>, staying well inside LinkedIn&apos;s limits, so your account is never flagged.</p> },
-      { n: "05", title: "You approve before anything sends", detail: <p>You see the exact messages first — nothing goes out without your sign-off. Expect around <span className="text-white/80">1 in 4</span> to accept, and a healthy share to reply and start a conversation.</p> },
+      { n: "01", title: "Why LinkedIn: email misses people", detail: <p>Email can&apos;t reach everyone — about <span className="text-white/80">1 in 5</span> of the right buyers have no findable email. LinkedIn is a separate pipe with no spam filter, so it reaches the people email never could.</p> },
+      { n: "02", title: "We find the right people", detail: <p>We build a ranked list of {businessName}&apos;s ideal buyers in <span className="text-white/80">priority order</span> — best-fit first. The same audience, no strangers.</p> },
+      { n: "03", title: "A personal request, from a real person", detail: <p>Every note is written by hand for that person, based on their <span className="text-white/80">actual company</span>. It comes from a <span className="text-white/80">real rep who works with you</span> (or your own profile) — never anyone pretending to be you.</p> },
+      { n: "04", title: "We follow up the right way", detail: <p>Once they accept, a short sequence <span className="text-white/80">spaced over the week</span>. The moment someone replies, the automation stops and a <span className="text-white/80">human takes over</span>.</p> },
+      { n: "05", title: "We keep your account safe", detail: <p>Real profiles, well inside LinkedIn&apos;s limits — around <span className="text-white/80">150 a week, 30 a day</span> — so your account is never flagged.</p> },
+      { n: "06", title: "You approve before anything sends", detail: <p>You see the exact messages first — nothing goes out without your sign-off. Expect around <span className="text-white/80">1 in 4</span> to accept, and a healthy share to reply.</p> },
     ],
     [businessName]
   );
@@ -76,19 +81,18 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
     if (!root) return;
     const w = root.clientWidth;
     const h = root.clientHeight;
-    // Mirror NarrationRail's own sizing (w-[34%] max-w-[440px] min-w-[300px])
-    // so the flow never slides under the rail on narrower viewports.
+    // Mirror NarrationRail's sizing (w-[34%] max-w-[440px] min-w-[300px]).
     const railRight = Math.max(300, Math.min(w * 0.34, 440));
     const canvasLeft = railRight + 40;
     const canvasRight = w - 32;
     const cw = canvasRight - canvasLeft;
-    const nodeY = h * 0.5;
+    const nodeY = h * 0.52;
     const nodes: Pt[] = Array.from({ length: N }, (_, i) => ({
       x: canvasLeft + cw * (0.12 + 0.76 * (i / (N - 1))),
       y: nodeY,
     }));
-    const profile: Pt = { x: nodes[0].x, y: h * 0.24 };
-    layoutRef.current = { w, h, nodes, profile, railRight };
+    const centerX = (nodes[0].x + nodes[N - 1].x) / 2;
+    layoutRef.current = { w, h, nodes, centerX, railRight };
   }, []);
 
   const builtX = useCallback((t: number, L: Layout) => {
@@ -103,7 +107,7 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
       const ctx = ctxRef.current;
       const L = layoutRef.current;
       if (!ctx || !L) return;
-      const { w, h, nodes, profile } = L;
+      const { w, h, nodes } = L;
       ctx.clearRect(0, 0, w, h);
       const y = nodes[0].y;
       const x0 = nodes[0].x;
@@ -116,17 +120,6 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
         ctx.lineTo(endX, y);
         ctx.strokeStyle = "rgba(255,90,77,0.22)";
         ctx.lineWidth = 1.2;
-        ctx.stroke();
-      }
-
-      // profile → node0 feeder line
-      const profEv = easeOut(seg(t, T.profileIn[0], T.profileIn[1]));
-      if (profEv > 0) {
-        ctx.beginPath();
-        ctx.moveTo(profile.x, profile.y + 22);
-        ctx.lineTo(nodes[0].x, nodes[0].y - 22);
-        ctx.strokeStyle = `rgba(255,90,77,${0.2 * profEv})`;
-        ctx.lineWidth = 1.1;
         ctx.stroke();
       }
 
@@ -213,10 +206,22 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
     for (let i = 0; i < N; i++) if (dt >= nodeAppear(i)) c++;
     return c;
   })();
-  const activeNarration = Math.max(1, nodesPresent);
+  const activeNarration =
+    dt >= 6.3 ? 6 :
+    dt >= 5.2 ? 5 :
+    dt >= 4.1 ? 4 :
+    dt >= 3.0 ? 3 :
+    dt >= 1.9 ? 2 : 1;
+  const reachEv = clamp01(seg(dt, T.reachIn[0], T.reachIn[1]));
 
   const L = layoutRef.current;
   const px = (v: number, total: number) => `${(v / total) * 100}%`;
+
+  const CHIPS: { key: string; text: string; tone: "accent" | "violet"; icon: React.ReactNode }[] = [
+    { key: "approve", tone: "violet", text: "You approve every message", icon: <CheckIcon /> },
+    { key: "safe",    tone: "accent", text: "Under LinkedIn's limits · 150/wk", icon: <ShieldIcon /> },
+    { key: "rep",     tone: "accent", text: "A real rep — never you", icon: <PersonIcon /> },
+  ];
 
   return (
     <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-ink-950">
@@ -229,7 +234,7 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 07 · LinkedIn outreach · from a real profile</>}
+        eyebrow={<><span className="dot" /> Step 07 · LinkedIn outreach · done for you</>}
         headline={<><span className="text-gradient">LinkedIn outreach,</span><br /><span className="text-gradient-accent">done for you.</span></>}
         steps={steps}
         activeCount={activeNarration}
@@ -244,40 +249,44 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 
       {L && (
         <>
-          {/* the buyer — the right person, targeted */}
+          {/* WHY LinkedIn — reach bar: email misses ~1 in 5, LinkedIn covers all */}
           <div
             className="absolute z-20"
             style={{
-              left: px(L.profile.x, L.w),
-              top: px(L.profile.y, L.h),
-              transform: "translate(0,-50%)",
-              opacity: clamp01(seg(dt, T.profileIn[0], T.profileIn[1])),
+              left: px(L.centerX, L.w),
+              top: px(L.h * 0.16, L.h),
+              transform: `translate(-50%, ${(1 - reachEv) * -6}px)`,
+              opacity: reachEv,
+              width: 372,
+              maxWidth: "42vw",
             }}
           >
-            <div className="flex items-center gap-2.5 rounded-xl glass px-3 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.4)]">
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-accent/15 border border-accent/40 text-accent font-display text-[15px]">
-                F
-              </span>
-              <div className="leading-tight">
-                <div className="text-[12.5px] text-white font-medium">Ferrah</div>
-                <div className="text-[10px] text-white/50">VP Sales · Brightwave</div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-white/50 mb-1.5 text-center">
+              Why LinkedIn · email can&apos;t reach everyone
+            </div>
+            <div className="flex h-3.5 rounded overflow-hidden border border-white/12">
+              <div className="flex items-center justify-start pl-2" style={{ width: "82%", background: "rgba(255,255,255,0.12)" }}>
+                <span className="text-[8.5px] font-mono text-white/60 whitespace-nowrap">email reaches ~4 in 5</span>
               </div>
-              <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded bg-white shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logos/linkedin.png" alt="LinkedIn" width={12} height={12} style={{ width: 12, height: 12 }} className="object-contain" />
-              </span>
+              <div className="flex items-center justify-center" style={{ width: "18%", background: "#f59e0b" }}>
+                <span className="text-[8.5px] font-mono text-ink-950 font-semibold whitespace-nowrap">1 in 5</span>
+              </div>
+            </div>
+            <div className="text-[9.5px] text-center mt-1.5">
+              <span className="text-white/45">the </span>
+              <span style={{ color: "#f59e0b" }}>amber slice</span>
+              <span className="text-white/45"> has no email — </span>
+              <span className="text-accent">LinkedIn reaches them</span>
             </div>
           </div>
 
-          {/* the 5 LinkedIn-outreach steps — icon centered ON the connector line,
-              label positioned below so nothing sits over the line */}
+          {/* the 5 LinkedIn-outreach steps — icon centered ON the line, label below */}
           {STEPS.map((s, i) => {
             const a = clamp01((dt - nodeAppear(i)) / T.nodeDur);
             if (a <= 0) return null;
             const nd = L.nodes[i];
             return (
               <div key={s.key}>
-                {/* icon badge — centered exactly on the node point */}
                 <span
                   className="absolute z-20 inline-flex items-center justify-center w-11 h-11 rounded-xl bg-ink-900/90 border border-accent/40 backdrop-blur-sm shadow-[0_8px_22px_rgba(0,0,0,0.4)]"
                   style={{
@@ -289,7 +298,6 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
                 >
                   <StepIcon kind={s.kind} />
                 </span>
-                {/* label — below the icon */}
                 <div
                   className="absolute z-20 text-center"
                   style={{
@@ -307,18 +315,34 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
             );
           })}
 
-          {/* key point callout */}
-          <Callout
-            x={px((L.nodes[0].x + L.nodes[N - 1].x) / 2, L.w)}
-            y={px(L.h * 0.82, L.h)}
-            anchor="center"
-            tone="violet"
-            label="You approve every message"
-            sub="nothing sends without your sign-off"
-            appear={seg(dt, T.flowStart - 0.4, T.flowStart + 0.4)}
-            reduced={reduce}
-            className="[&_*]:!normal-case"
-          />
+          {/* trust row — safe · real rep · you approve */}
+          <div
+            className="absolute z-20 flex items-center justify-center gap-2.5 flex-wrap"
+            style={{
+              left: px(L.centerX, L.w),
+              top: px(L.h * 0.83, L.h),
+              transform: "translate(-50%,-50%)",
+              width: "min(560px, 52vw)",
+            }}
+          >
+            {CHIPS.map((c, i) => {
+              const a = clamp01((dt - (T.chipsStart + i * T.chipStagger)) / 0.5);
+              if (a <= 0) return <span key={c.key} />;
+              const toneCls = c.tone === "violet"
+                ? "border-violet-glow/45 text-violet-glow"
+                : "border-accent/45 text-accent";
+              return (
+                <span
+                  key={c.key}
+                  className={`inline-flex items-center gap-1.5 rounded-full glass border ${toneCls} px-3 py-1.5`}
+                  style={{ opacity: a, transform: `translateY(${(1 - a) * 6}px)` }}
+                >
+                  {c.icon}
+                  <span className="text-[11px] font-mono text-white/85 whitespace-nowrap">{c.text}</span>
+                </span>
+              );
+            })}
+          </div>
         </>
       )}
 
@@ -381,4 +405,14 @@ function StepIcon({ kind }: { kind: StepKind }) {
       <path d="M9 17l-4-4 4-4M5 13h11a4 4 0 0 0 4-4V6" {...stroke} />
     </svg>
   );
+}
+
+function CheckIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function ShieldIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>;
+}
+function PersonIcon() {
+  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden><circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.8" /><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
 }
