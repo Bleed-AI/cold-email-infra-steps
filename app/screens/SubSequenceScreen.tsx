@@ -302,7 +302,7 @@ export default function SubSequenceScreen({ businessName, deckHandleRef, onDone 
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 08 · Sub-sequence · what most agencies skip</>}
+        eyebrow={<><span className="dot" /> Step 09 · Sub-sequence · what most agencies skip</>}
         headline={
           <>
             <span className="text-gradient">Reply lands.</span>

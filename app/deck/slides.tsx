@@ -6,6 +6,7 @@ import ListBuildingScreen from "../screens/ListBuildingScreen";
 import SignalsScreen from "../screens/SignalsScreen";
 import CopyScreen from "../screens/CopyScreen";
 import SprintScreen from "../screens/SprintScreen";
+import LinkedInScreen from "../screens/LinkedInScreen";
 import SendingScreen from "../screens/SendingScreen";
 import SubSequenceScreen from "../screens/SubSequenceScreen";
 // WeeklyWinsScreen import kept commented for easy restore of the slide.
@@ -26,6 +27,7 @@ export const SLIDES: SlideDef[] = [
   { id: "signals", label: "Signals", kind: "one-shot-then-loop", Component: makeScreenSlide(SignalsScreen) },
   { id: "sprint", label: "Sprint", kind: "one-shot-then-loop", Component: makeScreenSlide(SprintScreen) },
   { id: "copy", label: "AI copy", kind: "one-shot-then-loop", Component: makeScreenSlide(CopyScreen) },
+  { id: "linkedin", label: "LinkedIn outreach", kind: "one-shot-then-loop", Component: makeScreenSlide(LinkedInScreen) },
   { id: "sending", label: "Live outreach", kind: "one-shot-then-loop", Component: makeScreenSlide(SendingScreen) },
   { id: "subseq", label: "Sub-sequence", kind: "one-shot-then-loop", Component: makeScreenSlide(SubSequenceScreen) },
   // TEMP HIDDEN — Weekly Wins slide is kept in code but excluded from the deck.
