@@ -26,13 +26,13 @@ const RESEARCH_FACTS = [
   { src: "Case study", fact: "Zeta: -47% no-shows / 6wks" },
 ];
 const AI_LINE =
-  "shipped 3 integrations in June — that fast-shipping pace usually means the AE calendar is filling up with unqualified demos";
+  "shipped 3 integrations in June, and that fast-shipping pace usually means the AE calendar is filling up with unqualified demos";
 
 type Src = "data" | "ai" | null;
 type Tok = { t: string; s?: Src };
 // the assembled email — each token tagged by its source so the merge is visible
 const SUBJECT: Tok[] = [
-  { t: "filtering demos before the reply — " },
+  { t: "filtering demos before the reply, " },
   { t: "Brightwave", s: "data" },
   { t: "?" },
 ];
@@ -64,9 +64,9 @@ const VARIANTS = [
   { id: "C", angle: "Save money", note: "vs a $90k SDR + stack" },
 ];
 const FOLLOWUPS = [
-  { tag: "E1 · day 0", text: "Inferred-tension opener (above)" },
-  { tag: "E2 · day 3", text: "Reframe: buy proof before headcount" },
-  { tag: "E3 · day 7", text: "New thread: the cost of a flat quarter" },
+  { tag: "Email", text: "Day 0 · inferred-tension opener (above)" },
+  { tag: "LinkedIn", text: "Day 2 · connect + soft, on-topic touch" },
+  { tag: "Mailer", text: "Day 5 · a direct-mail piece that stands out" },
 ];
 
 const T = {
@@ -101,11 +101,11 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Two kinds of variables", detail: <p>Some come straight from the data (name, company, headcount). Others are written by AI from each lead&apos;s research — even the subject line.</p> },
-      { n: "02", title: "AI writes the line from research", detail: <p>It reads the scraped facts — Series A timing, no sales hire yet, headcount — and infers the tension <em>none of them state outright</em>, then writes the opener from it. Not a slotted token: a sentence composed for one person.</p> },
-      { n: "03", title: "Merge both into the copy", detail: <p>Data variables and AI variables slot into a proven template, so every email reads like it was written by hand for that one person.</p> },
-      { n: "04", title: "A/B/C value angles", detail: <p>The same offer runs through three value lenses — save time, make money, save money — so the best-performing message wins on real replies.</p> },
-      { n: "05", title: "Follow-ups", detail: <p>Each angle becomes a short sequence over the next week, every touch adding something new — so {businessName} stays top-of-mind without nagging.</p> },
+      { n: "01", title: "Two kinds of variables", detail: <p>Some come straight from the data (name, company, headcount). Others are written by AI from each lead&apos;s research, even the subject line.</p> },
+      { n: "02", title: "AI writes the line from research", detail: <p>It reads the scraped facts (Series A timing, no sales hire yet, headcount) and infers the tension <em>none of them state outright</em>, then writes the opener from it. Not a slotted token: a sentence composed for one person.</p> },
+      { n: "03", title: "Merge both into the copy", detail: <p>Data variables and AI variables slot into a proven template, so every message (email, LinkedIn or direct mail) reads like it was written by hand for that one person.</p> },
+      { n: "04", title: "A/B/C value angles", detail: <p>The same offer runs through three value lenses (save time, make money, save money), so the best-performing message wins on real replies.</p> },
+      { n: "05", title: "Cross-channel follow-ups", detail: <p>Each angle becomes a short sequence over the next week: email, a LinkedIn touch, then a direct-mail piece, every touch adding something new, so {businessName} stays top-of-mind without nagging.</p> },
     ],
     [businessName]
   );
@@ -239,7 +239,7 @@ export default function CopyScreen({ businessName, deckHandleRef, onDone }: Scre
 
       <NarrationRail
         eyebrow={<><span className="dot" /> Step 06 · AI copy</>}
-        headline={<><span className="text-gradient">We write it,</span><br /><span className="text-gradient-accent">personally — at scale.</span></>}
+        headline={<><span className="text-gradient">We write it,</span><br /><span className="text-gradient-accent">personally, at scale.</span></>}
         steps={steps}
         activeCount={activeNarration}
         reduced={reduce}

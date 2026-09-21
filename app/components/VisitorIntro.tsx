@@ -84,13 +84,14 @@ export default function VisitorIntro() {
               id="visitor-intro-title"
               className="font-display text-[22px] md:text-[26px] text-white leading-[1.15] tracking-[-0.01em]"
             >
-              You&apos;re about to see how Bleed AI runs cold email — end to end.
+              You&apos;re about to see how Bleed AI runs multi-channel outreach, end to end.
             </h2>
 
             <p className="mt-3 text-sm text-white/65 leading-relaxed">
-              Nothing&apos;s running right now — this is a walkthrough of how
-              we build, send, and optimize cold email for businesses like
-              yours. Look around.
+              Nothing&apos;s running right now. This is a walkthrough of how
+              we build, send, and optimize outreach on email, LinkedIn, and
+              direct mail (with call and SMS follow-up in your CRM) for
+              businesses like yours. Look around.
             </p>
 
             <button

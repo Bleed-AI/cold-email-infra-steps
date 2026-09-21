@@ -80,10 +80,10 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Deliverability watched in real time", detail: <p>Every send, open, reply and bounce is tracked — the moment a metric drifts, the system flags it.</p> },
+      { n: "01", title: "Every channel watched in real time", detail: <p>Every send, open, reply and bounce is tracked across email, LinkedIn and direct mail (plus call &amp; SMS follow-up in your CRM). The moment a metric drifts, the system flags it.</p> },
       { n: "02", title: "Per-mailbox health, 24/7", detail: <p>Every one of {businessName}&apos;s mailboxes is scored on its own reputation. If one dips, it&apos;s pulled and rested before it can drag the others down.</p> },
-      { n: "03", title: "Domain reputation & blacklists", detail: <p>Each sending domain is checked against blacklists and reputation feeds continuously — a problem domain is caught early, not after a whole campaign burns.</p> },
-      { n: "04", title: "Auto-heal · quiet, weak inboxes rest", detail: <p>Weak inboxes rest, warm replacements rotate in, campaigns keep sending. The infrastructure looks after itself so {businessName}&apos;s sending stays evergreen.</p> },
+      { n: "03", title: "Domain reputation & blacklists", detail: <p>Each sending domain is checked against blacklists and reputation feeds continuously, so a problem domain is caught early, not after a whole campaign burns.</p> },
+      { n: "04", title: "Auto-heal · quiet, weak inboxes rest", detail: <p>Weak inboxes rest, warm replacements rotate in, campaigns keep sending. The infrastructure looks after itself so {businessName}&apos;s email, LinkedIn and direct-mail outreach stays evergreen.</p> },
     ],
     [businessName]
   );
@@ -228,7 +228,7 @@ export default function MonitoringScreen({ businessName, slug, deckHandleRef, on
                 <div className="flex-1 min-w-0">
                   <Heartbeat />
                   <div className="mt-2 text-[11px] font-mono text-white/45 leading-relaxed max-w-[520px]">
-                    Inbox placement, opens, replies and spam-rate tracked in real time — every send checked as it lands, so a drift is caught instantly.
+                    Inbox placement, opens, replies and spam-rate tracked in real time, every send checked as it lands, so a drift is caught instantly.
                   </div>
                 </div>
                 <div className="hidden lg:flex flex-col gap-2 shrink-0 border-l border-white/8 pl-6">

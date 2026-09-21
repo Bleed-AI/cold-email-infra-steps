@@ -58,10 +58,10 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Campaign goes live", detail: <p>After warm-up, {businessName}&apos;s first campaign launches in <span className="text-white/80">Instantly</span> across all 21 mailboxes.</p> },
-      { n: "02", title: "Sent at a safe cadence", detail: <p>Around {PER_INBOX_PER_DAY} emails per inbox per day, spaced out — never a blast — so providers keep trusting your domains.</p> },
+      { n: "01", title: "Campaign goes live", detail: <p>After warm-up, {businessName}&apos;s first email campaign launches in <span className="text-white/80">Instantly</span> across all 21 mailboxes. LinkedIn runs as its own channel (next section).</p> },
+      { n: "02", title: "Sent at a safe cadence", detail: <p>Around {PER_INBOX_PER_DAY} emails per inbox per day, spaced out, never a blast, so providers keep trusting your domains.</p> },
       { n: "03", title: "Landing in the inbox", detail: <p>Because the domains are warmed and authenticated, messages land in the primary inbox, not spam.</p> },
-      { n: "04", title: "Replies route back to you", detail: <p>Positive replies come straight back to <span className="text-white/80">you@{mainDomain}</span>, and sending auto-pauses on reply so no prospect is ever double-messaged.</p> },
+      { n: "04", title: "Replies land in your CRM", detail: <p>Positive replies come straight back to <span className="text-white/80">you@{mainDomain}</span> and drop into <span className="text-white/80">your CRM</span> for call &amp; SMS follow-up. Sending auto-pauses on reply, so no prospect is ever double-messaged.</p> },
     ],
     [businessName, mainDomain]
   );
@@ -332,7 +332,7 @@ export default function SendingScreen({ businessName, slug, mainDomain, deckHand
             tone="accent"
             label="Metered cadence"
             value={`~${PER_INBOX_PER_DAY}`}
-            sub="per inbox / day — never a blast"
+            sub="per inbox / day · never a blast"
             appear={seg(dt, T.sendStart, T.sendStart + 0.9)}
             reduced={reduce}
           />

@@ -30,6 +30,7 @@ import { NarrationRail, type NarrationStep } from "../lab/engine/NarrationRail";
  */
 
 type StageType = "cold" | "reply" | "enrich" | "sub" | "meeting";
+type Channel = "linkedin" | "sms" | "call";
 type Stage = {
   key: string;
   type: StageType;
@@ -37,15 +38,16 @@ type Stage = {
   sub: string;
   day: string;
   appearAt: number;
+  channel?: Channel;
 };
 
 const STAGES: Stage[] = [
   { key: "e1",      type: "cold",    label: "Cold email",        sub: "initial touch",              day: "Day 0",  appearAt: 0.4 },
-  { key: "e2",      type: "cold",    label: "Follow-up",         sub: "part of the sequence",       day: "Day 3",  appearAt: 1.4 },
+  { key: "e2",      type: "cold",    label: "LinkedIn touch",    sub: "part of the sequence",       day: "Day 3",  appearAt: 1.4, channel: "linkedin" },
   { key: "reply",   type: "reply",   label: "Positive reply",    sub: "\"What did you have in mind?\"", day: "Day 5",  appearAt: 2.7 },
-  { key: "enrich",  type: "enrich",  label: "Auto-enrich",       sub: "round 2 fires",              day: "+2 min", appearAt: 4.4 },
-  { key: "s1",      type: "sub",     label: "Sub-seq #1",         sub: "grounded in fresh data",     day: "Day 6",  appearAt: 5.8 },
-  { key: "s2",      type: "sub",     label: "Sub-seq #2",         sub: "different angle",            day: "Day 9",  appearAt: 6.8 },
+  { key: "enrich",  type: "enrich",  label: "Lands in your CRM", sub: "auto-enrich fires",          day: "+2 min", appearAt: 4.4 },
+  { key: "s1",      type: "sub",     label: "CRM: call",          sub: "team follows up",            day: "Day 6",  appearAt: 5.8, channel: "call" },
+  { key: "s2",      type: "sub",     label: "CRM: SMS",           sub: "quick nudge",                day: "Day 9",  appearAt: 6.8, channel: "sms" },
   { key: "meeting", type: "meeting", label: "Meeting booked",     sub: "Friday · 2:00 PM",           day: "Day 12", appearAt: 8.0 },
 ];
 const N = STAGES.length;
@@ -93,11 +95,11 @@ export default function SubSequenceScreen({ businessName, deckHandleRef, onDone 
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Cold sequence sends first", detail: <p>{businessName}&apos;s campaign goes out — an initial cold email, plus one follow-up. Standard so far; every agency does this part.</p> },
-      { n: "02", title: "A prospect replies", detail: <p>Someone from the list writes back with real interest. This is the moment where <span className="text-white/80">most agencies stop the automation</span> and hand it off — hope for the best.</p> },
-      { n: "03", title: "We fire enrichment again — right then", detail: <p>The reply triggers a second round of enrichment: their <span className="text-white/80">latest LinkedIn posts, news, role changes</span> — data that wasn&apos;t there when we first emailed.</p> },
-      { n: "04", title: "A short, tailored sub-sequence sends", detail: <p>2–3 follow-ups, each written around something we just learned. Not templates — a real thread that keeps the momentum moving toward a meeting.</p> },
-      { n: "05", title: "Reply → booked meeting", detail: <p>Because the sub-sequence keeps the conversation warm, replies convert to calls — not drift into a &quot;maybe later.&quot; That&apos;s the piece other agencies miss.</p> },
+      { n: "01", title: "Cold sequence sends first", detail: <p>{businessName}&apos;s campaign goes out: an initial cold email, plus a LinkedIn touch. Standard so far; every agency does this part.</p> },
+      { n: "02", title: "A prospect replies", detail: <p>Someone from the list writes back with real interest. This is the moment where <span className="text-white/80">most agencies stop the automation</span> and hand it off, hoping for the best.</p> },
+      { n: "03", title: "The lead drops into your CRM", detail: <p>The reply triggers a second round of enrichment: their <span className="text-white/80">latest LinkedIn posts, news, role changes</span>. The lead lands in <span className="text-white/80">your CRM</span> (the app we build for you), fully enriched.</p> },
+      { n: "04", title: "Your CRM takes over: call & SMS", detail: <p>From the CRM, the team follows up with a <span className="text-white/80">quick call and an SMS</span>, each around something we just learned. Not templates, but a real, human follow-up that keeps momentum moving toward a meeting.</p> },
+      { n: "05", title: "Reply → booked meeting", detail: <p>Because the sub-sequence keeps the conversation warm, replies convert to calls, not drift into a &quot;maybe later.&quot; That&apos;s the piece other agencies miss.</p> },
     ],
     [businessName]
   );
@@ -300,7 +302,7 @@ export default function SubSequenceScreen({ businessName, deckHandleRef, onDone 
       <canvas ref={canvasRef} className="absolute inset-0" />
 
       <NarrationRail
-        eyebrow={<><span className="dot" /> Step 08 · Sub-sequence · what most agencies skip</>}
+        eyebrow={<><span className="dot" /> Step 09 · Sub-sequence · what most agencies skip</>}
         headline={
           <>
             <span className="text-gradient">Reply lands.</span>
@@ -337,7 +339,7 @@ export default function SubSequenceScreen({ businessName, deckHandleRef, onDone 
               opacity: clamp01((dt - STAGES[3].appearAt) / 0.5),
             }}
           >
-            <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-accent">Our sub-sequence</span>
+            <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-accent">CRM follow-up</span>
             <span className="text-[8.5px] font-mono text-accent/60">(Bleed AI)</span>
           </div>
 
@@ -517,7 +519,7 @@ function StageCard({
 
         {/* Icon */}
         <div className="flex items-center justify-center mb-1">
-          <StageIcon type={stage.type} />
+          <StageIcon type={stage.type} channel={stage.channel} />
         </div>
 
         {/* Label */}
@@ -541,9 +543,39 @@ function StageCard({
   );
 }
 
-function StageIcon({ type }: { type: StageType }) {
+function StageIcon({ type, channel }: { type: StageType; channel?: Channel }) {
   const size = 16;
   const wrap = "inline-flex items-center justify-center w-6 h-6 rounded-md";
+  // Channel-specific touches keep the violet "sub" tile so they read as part of
+  // the sub-sequence, but carry their own glyph (added on — email/reply/meeting
+  // icons below are unchanged).
+  if (channel === "linkedin") {
+    return (
+      <span className={`${wrap} bg-white shrink-0 shadow-[0_1px_4px_rgba(0,0,0,0.4)]`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logos/linkedin.png" alt="LinkedIn" width={12} height={12} style={{ width: 12, height: 12 }} className="object-contain" />
+      </span>
+    );
+  }
+  if (channel === "call") {
+    return (
+      <span className={`${wrap} bg-violet-glow/15 border border-violet-glow/50 text-violet-glow`}>
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <path d="M6.5 4h3l1.2 4-2 1.2a11 11 0 0 0 5.1 5.1l1.2-2 4 1.2v3a1.5 1.5 0 0 1-1.6 1.5A15.5 15.5 0 0 1 5 6.6 1.5 1.5 0 0 1 6.5 4z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+        </svg>
+      </span>
+    );
+  }
+  if (channel === "sms") {
+    return (
+      <span className={`${wrap} bg-violet-glow/15 border border-violet-glow/50 text-violet-glow`}>
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M8 10h8M8 12.5h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      </span>
+    );
+  }
   if (type === "cold") {
     return (
       <span className={`${wrap} bg-white/[0.08] border border-white/15 text-white/70`}>

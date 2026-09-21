@@ -84,11 +84,11 @@ export default function WeeklyWinsScreen({ businessName, deckHandleRef, onDone }
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Week 1 — which list wins?", detail: <p>We take {businessName}&apos;s campaigns and split by list. 3 audiences compete on reply rate. Only one moves on.</p> },
-      { n: "02", title: "Week 2 — best offer on the winning list", detail: <p>Now we lock the winning list and test 3 offers on it. Whichever books the most meetings, we keep.</p> },
-      { n: "03", title: "Week 3 — best CTA on winning list + offer", detail: <p>Same drill for CTAs. Same list, same offer, three different closing asks — the one that gets people to click Book wins.</p> },
+      { n: "01", title: "Week 1: which list wins?", detail: <p>We take {businessName}&apos;s campaigns and split by list. 3 audiences compete on reply rate. Only one moves on.</p> },
+      { n: "02", title: "Week 2: best offer on the winning list", detail: <p>Now we lock the winning list and test 3 offers on it. Whichever books the most meetings, we keep.</p> },
+      { n: "03", title: "Week 3: best CTA on winning list + offer", detail: <p>Same drill for CTAs. Same list, same offer, three different closing asks, and the one that gets people to click Book wins.</p> },
       { n: "04", title: "Champion combo scales", detail: <p>Best list × best offer × best CTA = the champion campaign. We 3× its volume and it just keeps producing.</p> },
-      { n: "05", title: "Every few weeks, a new tournament", detail: <p>The market shifts. So we start a new round — retesting whatever we suspect is drifting — and the current champion has to defend the title.</p> },
+      { n: "05", title: "Every few weeks, a new tournament", detail: <p>The market shifts. So we start a new round, retesting whatever we suspect is drifting, and the current champion has to defend the title.</p> },
     ],
     [businessName]
   );
