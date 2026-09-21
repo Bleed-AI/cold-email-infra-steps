@@ -88,11 +88,11 @@ export default function SignalsScreen({ businessName, deckHandleRef, onDone }: S
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "We monitor 6 signal sources — 24/7", detail: <p>Job posts, LinkedIn announcements, funding rounds, product launches, tech-stack changes and community mentions — all watched continuously for {businessName}&apos;s ideal buyers.</p> },
-      { n: "02", title: "Every match becomes a signal", detail: <p>A new BDR hire, a Series A raise, a Product Hunt launch — each is a company actively spending right now. Not a cold guess: a live event.</p> },
+      { n: "01", title: "We monitor 6 signal sources, 24/7", detail: <p>Job posts, LinkedIn announcements, funding rounds, product launches, tech-stack changes and community mentions, all watched continuously for {businessName}&apos;s ideal buyers.</p> },
+      { n: "02", title: "Every match becomes a signal", detail: <p>A new BDR hire, a Series A raise, a Product Hunt launch: each is a company actively spending right now. Not a cold guess, but a live event.</p> },
       { n: "03", title: "Enriched the moment it fires", detail: <p>Signal attaches to the company, we find the decision-maker, and the copy hook writes itself around <span className="text-white/80">what just happened</span>.</p> },
       { n: "04", title: "Signal-based prospects reply first", detail: <p>Because they&apos;re already in motion, not stationary. Signals outperform pure firmographic segments in almost every sprint.</p> },
-      { n: "05", title: "Not one campaign — 6 to 8 experiments", detail: <p>Each signal type becomes its own campaign in Sprint (Step 05) — job-signal, funding-signal, launch-signal each get their own angle, offer and channel mix (email, LinkedIn, direct mail). Always fresh, always warm.</p> },
+      { n: "05", title: "Not one campaign, 6 to 8 experiments", detail: <p>Each signal type becomes its own campaign in Sprint (Step 05): job-signal, funding-signal, launch-signal each get their own angle, offer and channel mix (email, LinkedIn, direct mail). Always fresh, always warm.</p> },
     ],
     [businessName]
   );
@@ -526,7 +526,7 @@ export default function SignalsScreen({ businessName, deckHandleRef, onDone }: S
                 <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                 <div className="flex flex-col leading-tight">
                   <span className="font-display text-[15px] text-white">
-                    Not one campaign —{" "}
+                    Not one campaign,{" "}
                     <span className="text-accent">6&nbsp;to&nbsp;8 experiments</span>.
                   </span>
                   <span className="text-[9.5px] font-mono uppercase tracking-[0.16em] text-white/50 mt-0.5">

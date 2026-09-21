@@ -125,11 +125,11 @@ export default function ListBuildingScreen({ businessName, deckHandleRef, onDone
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Source from a vast network", detail: <p>Candidate companies pour in from 12+ channels at once — Prospeo, Apollo, Sales Navigator, an Apify scraper cluster (Maps, jobs, Shopify, Product Hunt…), Serper, communities and niche directories. Far wider than any one tool.</p> },
-      { n: "02", title: "Qualify before we spend", detail: <p>We keep only right-fit companies for {businessName} — size, industry and buying signals — and drop the rest before paying to enrich a single one.</p> },
+      { n: "01", title: "Source from a vast network", detail: <p>Candidate companies pour in from 12+ channels at once: Prospeo, Apollo, Sales Navigator, an Apify scraper cluster (Maps, jobs, Shopify, Product Hunt…), Serper, communities and niche directories. Far wider than any one tool.</p> },
+      { n: "02", title: "Qualify before we spend", detail: <p>We keep only right-fit companies for {businessName} (size, industry and buying signals) and drop the rest before paying to enrich a single one.</p> },
       { n: "03", title: "Enrich every keeper", detail: <p>Clay routes 100+ providers, Prospeo FIRMO returns 35 firmographic fields in one call, and a smart-scrape cascade (Serper → parallel.ai) reads each site. OpenAI turns it into per-lead variables.</p> },
-      { n: "04", title: "Decision-makers, multiple methods", detail: <p>2–3 real buyers per company. Prospeo finds most in-house; on a miss a backup chain fires — <span className="text-white/80">Surfe → MixRank → OpenMart</span> — first hit wins.</p> },
-      { n: "05", title: "Emails, LinkedIn & phone — verified", detail: <p>Each email runs a finder waterfall — <span className="text-white/80">Kitt → LeadMagic → Prospeo → Findymail</span> — then a strict <span className="text-white/80">TryKit</span> verify. We capture the <span className="text-white/80">LinkedIn profile, mailing address and direct / mobile number</span> too — so the same buyer can be reached on email, LinkedIn and direct mail, then called or texted from your CRM later. Bounce rates stay near zero.</p> },
+      { n: "04", title: "Decision-makers, multiple methods", detail: <p>2–3 real buyers per company. Prospeo finds most in-house; on a miss a backup chain fires (<span className="text-white/80">Surfe → MixRank → OpenMart</span>), first hit wins.</p> },
+      { n: "05", title: "Verified emails, LinkedIn & phone", detail: <p>Each email runs a finder waterfall (<span className="text-white/80">Kitt → LeadMagic → Prospeo → Findymail</span>), then a strict <span className="text-white/80">TryKit</span> verify. We capture the <span className="text-white/80">LinkedIn profile, mailing address and direct / mobile number</span> too, so the same buyer can be reached on email, LinkedIn and direct mail, then called or texted from your CRM later. Bounce rates stay near zero.</p> },
     ],
     [businessName]
   );

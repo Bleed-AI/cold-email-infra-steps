@@ -71,7 +71,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
         detail: (
           <p>
             <span className="text-white/80">{mainDomain}</span> is {businessName}&apos;s real website. We
-            never run cold outreach from it — so its reputation is never at risk.
+            never run cold outreach from it, so its reputation is never at risk.
           </p>
         ),
       },
@@ -91,7 +91,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
         title: "3 mailboxes on every domain",
         detail: (
           <p>
-            Three Google inboxes per domain — enough volume to scale, few enough that every provider
+            Three Google inboxes per domain: enough volume to scale, few enough that every provider
             treats each mailbox like a normal person. That&apos;s{" "}
             <span className="text-white/80">21 mailboxes</span> in total.
           </p>
@@ -103,7 +103,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
         detail: (
           <p>
             These are the ID badges every inbox provider checks before letting mail in. We set all three
-            on every domain — so you land in the inbox, not spam.
+            on every domain, so you land in the inbox, not spam.
           </p>
         ),
       },
@@ -114,7 +114,7 @@ export default function NetworkSetup({ businessName, slug, mainDomain, deckHandl
           <p>
             Each sending domain redirects to <span className="text-white/80">{mainDomain}</span>, so a
             curious prospect who clicks the domain lands on your real site. This email layer is the
-            backbone — LinkedIn and direct mail run alongside, and call &amp; SMS follow-up happen in your
+            backbone. LinkedIn and direct mail run alongside, and call &amp; SMS follow-up happen in your
             CRM. Whole setup: ~1 day.
           </p>
         ),

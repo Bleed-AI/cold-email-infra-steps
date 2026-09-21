@@ -95,11 +95,11 @@ export default function SubSequenceScreen({ businessName, deckHandleRef, onDone 
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Cold sequence sends first", detail: <p>{businessName}&apos;s campaign goes out — an initial cold email, plus a LinkedIn touch. Standard so far; every agency does this part.</p> },
-      { n: "02", title: "A prospect replies", detail: <p>Someone from the list writes back with real interest. This is the moment where <span className="text-white/80">most agencies stop the automation</span> and hand it off — hope for the best.</p> },
+      { n: "01", title: "Cold sequence sends first", detail: <p>{businessName}&apos;s campaign goes out: an initial cold email, plus a LinkedIn touch. Standard so far; every agency does this part.</p> },
+      { n: "02", title: "A prospect replies", detail: <p>Someone from the list writes back with real interest. This is the moment where <span className="text-white/80">most agencies stop the automation</span> and hand it off, hoping for the best.</p> },
       { n: "03", title: "The lead drops into your CRM", detail: <p>The reply triggers a second round of enrichment: their <span className="text-white/80">latest LinkedIn posts, news, role changes</span>. The lead lands in <span className="text-white/80">your CRM</span> (the app we build for you), fully enriched.</p> },
-      { n: "04", title: "Your CRM takes over — call & SMS", detail: <p>From the CRM, the team follows up with a <span className="text-white/80">quick call and an SMS</span>, each around something we just learned. Not templates — a real, human follow-up that keeps momentum moving toward a meeting.</p> },
-      { n: "05", title: "Reply → booked meeting", detail: <p>Because the sub-sequence keeps the conversation warm, replies convert to calls — not drift into a &quot;maybe later.&quot; That&apos;s the piece other agencies miss.</p> },
+      { n: "04", title: "Your CRM takes over: call & SMS", detail: <p>From the CRM, the team follows up with a <span className="text-white/80">quick call and an SMS</span>, each around something we just learned. Not templates, but a real, human follow-up that keeps momentum moving toward a meeting.</p> },
+      { n: "05", title: "Reply → booked meeting", detail: <p>Because the sub-sequence keeps the conversation warm, replies convert to calls, not drift into a &quot;maybe later.&quot; That&apos;s the piece other agencies miss.</p> },
     ],
     [businessName]
   );

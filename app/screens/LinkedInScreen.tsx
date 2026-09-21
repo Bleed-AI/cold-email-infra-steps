@@ -67,12 +67,12 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
 
   const steps: NarrationStep[] = useMemo(
     () => [
-      { n: "01", title: "Why LinkedIn: email misses people", detail: <p>Email can&apos;t reach everyone — about <span className="text-white/80">1 in 5</span> of the right buyers have no findable email. LinkedIn is a separate pipe with no spam filter, so it reaches the people email never could.</p> },
-      { n: "02", title: "We find the right people", detail: <p>We build a ranked list of {businessName}&apos;s ideal buyers in <span className="text-white/80">priority order</span> — best-fit first. The same audience, no strangers.</p> },
-      { n: "03", title: "A personal request, from a real person", detail: <p>Every note is written by hand for that person, based on their <span className="text-white/80">actual company</span>. It comes from a <span className="text-white/80">real rep who works with you</span> (or your own profile) — never anyone pretending to be you.</p> },
+      { n: "01", title: "Why LinkedIn: email misses people", detail: <p>Email can&apos;t reach everyone. About <span className="text-white/80">1 in 5</span> of the right buyers have no findable email, and LinkedIn is a separate pipe with no spam filter, so it reaches the people email never could.</p> },
+      { n: "02", title: "We find the right people", detail: <p>We build a ranked list of {businessName}&apos;s ideal buyers in <span className="text-white/80">priority order</span>, best-fit first. The same audience, no strangers.</p> },
+      { n: "03", title: "A personal request, from a real person", detail: <p>Every note is written by hand for that person, based on their <span className="text-white/80">actual company</span>. It comes from a <span className="text-white/80">real rep who works with you</span> (or your own profile), never anyone pretending to be you.</p> },
       { n: "04", title: "We follow up the right way", detail: <p>Once they accept, a short sequence <span className="text-white/80">spaced over the week</span>. The moment someone replies, the automation stops and a <span className="text-white/80">human takes over</span>.</p> },
-      { n: "05", title: "We keep your account safe", detail: <p>Real profiles, well inside LinkedIn&apos;s limits — around <span className="text-white/80">150 a week, 30 a day</span> — so your account is never flagged.</p> },
-      { n: "06", title: "You approve before anything sends", detail: <p>You see the exact messages first — nothing goes out without your sign-off. Expect around <span className="text-white/80">1 in 4</span> to accept, and a healthy share to reply.</p> },
+      { n: "05", title: "We keep your account safe", detail: <p>Real profiles, well inside LinkedIn&apos;s limits (around <span className="text-white/80">150 a week, 30 a day</span>), so your account is never flagged.</p> },
+      { n: "06", title: "You approve before anything sends", detail: <p>You see the exact messages first, and nothing goes out without your sign-off. Expect around <span className="text-white/80">1 in 4</span> to accept, and a healthy share to reply.</p> },
     ],
     [businessName]
   );
@@ -221,7 +221,7 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
   const CHIPS: { key: string; text: string; tone: "accent" | "violet"; icon: React.ReactNode }[] = [
     { key: "approve", tone: "violet", text: "You approve every message", icon: <CheckIcon /> },
     { key: "safe",    tone: "accent", text: "Under LinkedIn's limits · 150/wk", icon: <ShieldIcon /> },
-    { key: "rep",     tone: "accent", text: "A real rep — never you", icon: <PersonIcon /> },
+    { key: "rep",     tone: "accent", text: "A real rep, never you", icon: <PersonIcon /> },
   ];
 
   return (
@@ -304,7 +304,7 @@ export default function LinkedInScreen({ businessName, deckHandleRef, onDone }: 
                 }}
               >
                 <span className="font-display text-[22px] leading-none" style={{ color: "#f59e0b" }}>1 in 5</span>
-                <span className="text-white/60 text-[13.5px]">has no email —</span>
+                <span className="text-white/60 text-[13.5px]">has no email,</span>
                 <span className="font-display text-[18px] leading-none text-accent">LinkedIn reaches them</span>
               </div>
             </div>
