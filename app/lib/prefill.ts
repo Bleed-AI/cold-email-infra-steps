@@ -89,3 +89,140 @@ export function parsePrefill(search: string): Prefill | null {
   if (!company && !domain && !first && !last && !go) return null;
   return { company, domain, first, last, go };
 }
+
+/* ------------------------------------------------------------------------ */
+/* Market payload (`p=`): the lead's own market, for /reach.                */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * `p=` carries one base64url JSON object built by bleedai-campaign-master
+ * `scripts/lib/followup-playbook.cjs` marketPayload():
+ *   { v: 1, c: count, cl: count label, k: "ceiling" | "sheet" | "index",
+ *     t: [titles], e: [{ n: name, p: place, t: title, h: hiring }], b: buyer }
+ * Untrusted like every other param: every string goes through cleanText with
+ * the caps below (kept equal to MARKET_PAYLOAD_LIMITS on the sender side),
+ * the count must be a bounded integer, and anything malformed drops the
+ * whole payload rather than rendering half of it.
+ */
+
+export type CountKind = "ceiling" | "sheet" | "index";
+
+export type MarketExample = {
+  name: string;
+  place?: string;
+  title?: string;
+  hiring?: string;
+};
+
+export type MarketPayload = {
+  count?: number;
+  countLabel?: string;
+  countKind?: CountKind;
+  titles: string[];
+  examples: MarketExample[];
+  buyer?: string;
+};
+
+export const PAYLOAD_LIMITS = {
+  raw: 4000, // max length of the encoded param itself
+  label: 90,
+  buyer: 160,
+  title: 48,
+  titles: 4,
+  exName: 48,
+  exPlace: 48,
+  exTitle: 60,
+  examples: 5,
+  countMax: 99_999_999,
+} as const;
+
+const COUNT_KINDS: ReadonlySet<string> = new Set(["ceiling", "sheet", "index"]);
+
+/** base64url -> UTF-8 string, or undefined on any malformed input. */
+export function decodeBase64Url(raw: string): string | undefined {
+  if (!/^[A-Za-z0-9_-]+={0,2}$/.test(raw)) return undefined;
+  let b64 = raw.replace(/=+$/, "").replace(/-/g, "+").replace(/_/g, "/");
+  if (b64.length % 4 === 1) return undefined;
+  while (b64.length % 4) b64 += "=";
+  try {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return undefined;
+  }
+}
+
+/** A positive whole number within bounds, else undefined (never rounded). */
+export function boundedInt(v: unknown, max: number): number | undefined {
+  return typeof v === "number" && Number.isInteger(v) && v > 0 && v <= max ? v : undefined;
+}
+
+/** Em and en dashes never reach the page, whatever the sender did. */
+function noDash(s: string | undefined): string | undefined {
+  if (!s) return s;
+  const out = s.replace(/\s*[‒-―−]\s*/g, ", ").replace(/\s+/g, " ").trim();
+  return out || undefined;
+}
+
+function str(v: unknown, max: number): string | undefined {
+  return typeof v === "string" ? noDash(cleanText(v, max)) : undefined;
+}
+
+/**
+ * Parse `p=` out of a query string (with or without "?"). Returns null when
+ * there is no payload, it is malformed, or it has nothing personal to show
+ * (no count and no named examples), so /reach can fall back to /verify.
+ */
+export function parsePayload(search: string): MarketPayload | null {
+  const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+  const raw = params.get("p");
+  if (!raw || raw.length > PAYLOAD_LIMITS.raw) return null;
+  const json = decodeBase64Url(raw.trim());
+  if (!json) return null;
+  let o: unknown;
+  try {
+    o = JSON.parse(json);
+  } catch {
+    return null;
+  }
+  if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+  const r = o as Record<string, unknown>;
+
+  const count = boundedInt(r.c, PAYLOAD_LIMITS.countMax);
+  const countLabel = count ? str(r.cl, PAYLOAD_LIMITS.label) : undefined;
+  const countKind = count && typeof r.k === "string" && COUNT_KINDS.has(r.k) ? (r.k as CountKind) : undefined;
+
+  const titles = (Array.isArray(r.t) ? r.t : [])
+    .map((t) => str(t, PAYLOAD_LIMITS.title))
+    .filter((t): t is string => !!t)
+    .filter((t, i, a) => a.indexOf(t) === i)
+    .slice(0, PAYLOAD_LIMITS.titles);
+
+  const examples: MarketExample[] = [];
+  for (const e of Array.isArray(r.e) ? r.e : []) {
+    if (examples.length >= PAYLOAD_LIMITS.examples) break;
+    if (!e || typeof e !== "object" || Array.isArray(e)) continue;
+    const x = e as Record<string, unknown>;
+    const name = str(x.n, PAYLOAD_LIMITS.exName);
+    if (!name) continue;
+    const ex: MarketExample = { name };
+    const place = str(x.p, PAYLOAD_LIMITS.exPlace);
+    const title = str(x.t, PAYLOAD_LIMITS.exTitle);
+    const hiring = str(x.h, PAYLOAD_LIMITS.exTitle);
+    if (place) ex.place = place;
+    if (title) ex.title = title;
+    if (hiring) ex.hiring = hiring;
+    examples.push(ex);
+  }
+
+  const buyer = str(r.b, PAYLOAD_LIMITS.buyer);
+  if (!count && !examples.length) return null;
+  const out: MarketPayload = { titles, examples };
+  if (count) out.count = count;
+  if (countLabel) out.countLabel = countLabel;
+  if (countKind) out.countKind = countKind;
+  if (buyer) out.buyer = buyer;
+  return out;
+}
