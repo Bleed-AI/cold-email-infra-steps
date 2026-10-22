@@ -122,3 +122,19 @@ propagation verified live.
   the deck's last slide (pill next to the step controls). Content rules: NO vendor/tool names, no costs,
   no internal ids; the only numbers are "2.22% across 2,163 real sends" and "under 3%, or we rebuild at our
   cost". Before shipping a copy edit, grep `.next/server/app/verify.html` for vendor names and em/en dashes.
+
+## /reach: the personalized pipeline (2026-10-22, branch feat/reach-personalized-pipeline)
+- **Link:** `/reach?company=Acme&domain=acme.com&first=Sam&p=<base64url JSON>`. `p` is built by bleedai-campaign-master
+  `scripts/payloads/lead-market.cjs` (per-lead market resolver) via `scripts/lib/followup-playbook.cjs` `marketWalkthroughUrl()`.
+  Shape `{v,c,cl,k,t[],e[{n,p,t,h}],b}`: count, count label, count kind (`ceiling` database count / `sheet` companies
+  already found / `index` people-index count), titles (max 4), named examples (max 5: name, place, decision maker title,
+  hiring role), buyer description.
+- **Parser:** `parsePayload()` in `app/lib/prefill.ts` (tests `app/lib/payload.test.mjs`). Every string through `cleanText`
+  with the caps in `PAYLOAD_LIMITS` (kept equal to `MARKET_PAYLOAD_LIMITS` on the sender), dashes stripped, count must
+  be an integer in 1..99,999,999, any malformed payload is dropped whole. `parsePrefill` is unchanged.
+- **Page:** `app/reach/page.tsx`, server-rendered (dynamic), no client JS: SVG network (market -> titles -> email
+  waterfall -> verification -> sent, SMIL packets, desktop only), the six steps with their numbers in them, example
+  company lanes (solid = what we can see today, dashed = what happens when we build the list), the two /verify stats.
+  No payload or a bad one -> redirect to `/verify`, which stays static and unchanged. Same content rules as /verify.
+- **Screenshots:** headless Chrome has a ~500px minimum window, so a 390px shot clips; render mobile through a 390px
+  iframe instead.
