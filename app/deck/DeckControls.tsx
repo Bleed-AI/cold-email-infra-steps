@@ -61,6 +61,25 @@ export default function DeckControls() {
               <Arrow dir="down" />
             </button>
           </div>
+
+          {/* End of the deck: hand off to the email-verification proof page. */}
+          <AnimatePresence>
+            {atEnd && (
+              <motion.a
+                href="/verify"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-auto inline-flex items-center gap-2 rounded-full glass px-4 py-3 text-[10px] font-mono uppercase tracking-[0.18em] text-white/70 hover:text-accent transition-colors"
+              >
+                How we verify every email
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </motion.a>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>
