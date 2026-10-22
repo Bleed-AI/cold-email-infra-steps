@@ -105,3 +105,20 @@ propagation verified live.
 - "Construct, don't reveal": elements travel/build through space; a stagger-fade of a fixed layout
   is a fail.
 - No half-baked output. Audit before declaring done.
+
+## Per-lead links + /verify (2026-10-22, branch feat/per-lead-link-and-verify-page)
+- **Per-lead link:** `/?company=Acme&domain=acme.com&first=Sam&last=Lee&go=1`. Parsed by the pure helper
+  `app/lib/prefill.ts` (plain text only: tags and script bodies stripped, control chars removed, company
+  capped at 28, names at 40, domain normalised to a bare hostname or dropped). Applied once on load by
+  `app/deck/UrlPrefill.tsx` into `ClientContext`, so every screen renders the lead's company and domain.
+  Domain only: company is derived from it (`acme-labs.io` -> "Acme Labs"). Company only: domain = `<slug>.com`.
+  `go=1` skips the `VisitorIntro` welcome modal (there is no Entry screen any more since v3). Works with the
+  `#slide` deep link: `/?company=Acme&go=1#copy`. No params = unchanged behaviour.
+  `first`/`last` are stored in `ClientContext` but no screen renders them today.
+- **Test:** `npm test` (node:test, Node 22.18+ strips the TS types natively; `app/lib/prefill.test.mjs`).
+  Manual check: load the link above, confirm no modal, the Setup network shows `acme.com` and lookalike
+  domains, and the URL keeps the query after the hash is rewritten.
+- **/verify** (`app/verify/page.tsx`): static, client-safe "How we find and verify every email". Linked from
+  the deck's last slide (pill next to the step controls). Content rules: NO vendor/tool names, no costs,
+  no internal ids; the only numbers are "2.22% across 2,163 real sends" and "under 3%, or we rebuild at our
+  cost". Before shipping a copy edit, grep `.next/server/app/verify.html` for vendor names and em/en dashes.

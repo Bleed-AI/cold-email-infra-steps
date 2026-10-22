@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { parsePrefill } from "../lib/prefill";
 
 /**
  * Centered intro modal for first-time visitors arriving from bleedai.com.
  * Dims the page behind it until dismissed, so they can't start interacting
  * with the walkthrough before they know what it is.
+ *
+ * Per-lead links with `go=1` (e.g. /?company=Acme&go=1) skip this modal and
+ * drop the visitor straight into the personalized walkthrough.
  *
  * Dismiss by: clicking the X, clicking the "Got it" button, or clicking
  * the dimmed backdrop.
@@ -16,6 +20,13 @@ import { AnimatePresence, motion } from "framer-motion";
  */
 export default function VisitorIntro() {
   const [show, setShow] = useState(true);
+
+  // `go=1` on a per-lead link: start the walkthrough as if "Got it" was
+  // clicked. Starts true so the server render matches; the layout effect
+  // hides it right after hydration.
+  useLayoutEffect(() => {
+    if (parsePrefill(window.location.search)?.go) setShow(false);
+  }, []);
 
   // Lock scroll & block keyboard escape while modal is open
   useEffect(() => {
